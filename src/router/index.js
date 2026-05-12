@@ -6,7 +6,7 @@ const backendRoutes = [
     component: () => import('@/components/backend/BackendLayout.vue'),
     children: [
       {
-        path: '/back/dashboard',
+        path: 'dashboard',
         component: () => import('@/views/backend/DashBoard.vue'),
         meta: {
           title: '数据分析',
@@ -14,7 +14,7 @@ const backendRoutes = [
         },
       },
       {
-        path: '/back/knowledge',
+        path: 'knowledge',
         component: () => import('@/views/backend/KnowledgeView.vue'),
         meta: {
           title: '知识文章',
@@ -22,7 +22,7 @@ const backendRoutes = [
         },
       },
       {
-        path: '/back/consultation',
+        path: 'consultation',
         component: () => import('@/views/backend/ConsultationView.vue'),
         meta: {
           title: '咨询记录',
@@ -30,7 +30,7 @@ const backendRoutes = [
         },
       },
       {
-        path: '/back/emotional',
+        path: 'emotional',
         component: () => import('@/views/backend/EmotionalView.vue'),
         meta: {
           title: '情绪日志',

@@ -2,15 +2,18 @@
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+console.log(router)
 const iconUrl = new URL('@/assets/images/机器人.png', import.meta.url).href
 
-const handleOpen = () => {}
-const handleClose = () => {}
+const selectMenu = (key) => {
+  console.log(key)
+  router.push(`${router.options.routes[0].path}` + '/' + `${key.index}`)
+}
 </script>
 
 <template>
   <el-aside width="264px">
-    <el-menu default-active="2" class="side-menu" @open="handleOpen" @close="handleClose">
+    <el-menu default-active="2" class="side-menu">
       <div class="brand">
         <el-image
           :src="iconUrl"
@@ -23,9 +26,10 @@ const handleClose = () => {}
         </div>
       </div>
       <el-menu-item
+        @click="selectMenu"
         v-for="item in router.options.routes[0].children"
-        :key="item.meta.title"
-        index="item.meta.title"
+        :key="item.path"
+        :index="item.path"
       >
         <el-icon><component :is="item.meta.icon" /></el-icon>
         <span>{{ item.meta.title }}</span>

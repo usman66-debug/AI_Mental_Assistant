@@ -11,8 +11,8 @@ import NavBar from './NavBar.vue'
         <el-header>
           <NavBar />
         </el-header>
-        <el-main>
-          <router-view />
+        <el-main class="main-content">
+          <router-view class="content-container" />
         </el-main>
       </el-container>
     </el-container>
@@ -24,6 +24,14 @@ import NavBar from './NavBar.vue'
   height: 100vh;
   .container {
     height: 100%;
+    .el-header {
+      height: 74px !important;
+    }
+    .content-container {
+      background-color: #fff;
+      padding: 20px;
+      height: calc(100% - 74px);
+    }
   }
 }
 </style>

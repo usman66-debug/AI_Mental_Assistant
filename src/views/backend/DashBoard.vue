@@ -1,3 +1,7 @@
+<script setup>
+import PageHead from '@/components/backend/PageHead.vue'
+</script>
+
 <template>
-  <div>数据分析结果</div>
+  <PageHead title="数据分析结果" />
 </template>

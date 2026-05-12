@@ -1,3 +1,7 @@
+<script setup>
+import PageHead from '@/components/backend/PageHead.vue'
+</script>
+
 <template>
-  <div>情绪日志</div>
+  <PageHead title="情绪日志" />
 </template>

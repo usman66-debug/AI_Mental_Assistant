@@ -1,3 +1,7 @@
+<script setup>
+import PageHead from '@/components/backend/PageHead.vue'
+</script>
+
 <template>
-  <div>咨询记录</div>
+  <PageHead title="咨询记录" />
 </template>

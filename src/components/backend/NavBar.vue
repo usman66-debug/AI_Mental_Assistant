@@ -1,4 +1,7 @@
 <script setup>
+import { useAdimnStore } from '@/stores/admin'
+
+const adminStore = useAdimnStore()
 const handleCommand = (command) => {
   if (command === 'logout') {
     console.log('退出登录')
@@ -9,7 +12,7 @@ const handleCommand = (command) => {
 <template>
   <div class="nav-bar">
     <div class="flex-box">
-      <el-button
+      <el-button @click="adminStore.toggleCollapse"
         ><el-icon><Expand /></el-icon
       ></el-button>
       <p class="page-title">导航栏</p>

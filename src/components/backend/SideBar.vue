@@ -1,6 +1,8 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import { useAdimnStore } from '@/stores/admin'
 
+const adminStore = useAdimnStore()
 const router = useRouter()
 console.log(router)
 const iconUrl = new URL('@/assets/images/机器人.png', import.meta.url).href
@@ -12,15 +14,18 @@ const selectMenu = (key) => {
 </script>
 
 <template>
-  <el-aside width="264px">
-    <el-menu default-active="2" class="side-menu">
+  <el-aside :width="adminStore.iscollapse ? '64px' : '264px'">
+    <el-menu
+      default-active="2"
+      class="side-menu"
+      :collapse="adminStore.iscollapse"
+      :collapse-transition="false"
+    >
       <div class="brand">
-        <el-image
-          :src="iconUrl"
-          alt="LOGO"
-          style="width: 50px; height: 50px; padding-right: 10px"
-        />
-        <div class="info-card">
+        <div class="logo-wrapper">
+          <el-image :src="iconUrl" alt="LOGO" style="width: 50px; height: 50px" />
+        </div>
+        <div class="info-card" v-show="!adminStore.iscollapse">
           <h1 class="brand-title">AI心理健康助手</h1>
           <p class="brand-subtitle">管理后台</p>
         </div>
@@ -48,7 +53,19 @@ const selectMenu = (key) => {
     padding: 10px;
     background-color: #fff;
     border-bottom: 1px solid #e5e7eb;
+    .logo-wrapper {
+      flex-shrink: 0;
+      flex-grow: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 50px;
+      height: 50px;
+      padding-right: 10px;
+    }
     .info-card {
+      flex-shrink: 1;
+      overflow: hidden;
       .brand-title {
         font-size: 20px;
         font-weight: bold;

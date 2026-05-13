@@ -4,7 +4,6 @@ import { useAdimnStore } from '@/stores/admin'
 
 const adminStore = useAdimnStore()
 const router = useRouter()
-console.log(router)
 const iconUrl = new URL('@/assets/images/机器人.png', import.meta.url).href
 
 const selectMenu = (key) => {

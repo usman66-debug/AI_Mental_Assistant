@@ -21,6 +21,7 @@ defineProps({
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 20px;
   .page-title {
     font-size: 24px;
     color: #2d3748;

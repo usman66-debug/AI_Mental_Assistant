@@ -26,6 +26,9 @@ const formItem = [
     ],
   },
 ]
+const handleSearch = (data) => {
+  console.log(data)
+}
 </script>
 
 <template>
@@ -35,6 +38,7 @@ const formItem = [
         <el-button type="primary">新增按钮</el-button>
       </template>
     </PageHead>
-    <TableSearch :formItem="formItem" />
+    <!-- 监听子组件同名事件search，收到子组件传过来的数据后，调用handleSearch函数 -->
+    <TableSearch :formItem="formItem" @search="handleSearch" />
   </div>
 </template>

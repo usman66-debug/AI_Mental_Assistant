@@ -2,7 +2,9 @@
 import { ref } from 'vue'
 import { loginApi } from '@/apis/admin'
 import { ElMessage } from 'element-plus'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const rules = ref({
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
@@ -32,8 +34,11 @@ const submitForm = async () => {
           //将token存储到localStorage中
           localStorage.setItem('token', data.token)
           localStorage.setItem('userinfo', JSON.stringify(data.userinfo))
-          //跳转到首页
-          window.location.href = '/back'
+          if (data.userInfo.userType === 2) {
+            router.push('/back')
+          } else {
+            //
+          }
           return Promise.resolve('登录成功')
         }
       })

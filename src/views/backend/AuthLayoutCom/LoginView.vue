@@ -1,5 +1,7 @@
 <script setup>
 import { ref } from 'vue'
+import { loginApi } from '@/apis/admin'
+import { ElMessage } from 'element-plus'
 
 const rules = ref({
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
@@ -17,10 +19,24 @@ const submitForm = async () => {
   if (!ruleFormRef.value) {
     return
   }
-  //validate方法会返回一个Promise，Promise的resolve方法会传递valid和fields两个参数，valid表示当前表单校验状态，fields表示当前表单元素的值
-  await ruleFormRef.value.validate((valid, fields) => {
+  //validate方法会返回一个Promise，Promise的resolve方法会传递valid参数，valid表示当前表单校验状态
+  await ruleFormRef.value.validate((valid) => {
     if (valid) {
-      console.log(fields)
+      loginApi(formData.value).then((data) => {
+        //如果后端未返回token，提示用户登录失败
+        if (!data.token) {
+          ElMessage.error(data.msg || '登录失败，请检查用户名或密码')
+          return Promise.reject('登录失败')
+        } else {
+          ElMessage.success(data.msg || '登录成功')
+          //将token存储到localStorage中
+          localStorage.setItem('token', data.token)
+          localStorage.setItem('userinfo', JSON.stringify(data.userinfo))
+          //跳转到首页
+          window.location.href = '/back'
+          return Promise.resolve('登录成功')
+        }
+      })
     }
   })
 }

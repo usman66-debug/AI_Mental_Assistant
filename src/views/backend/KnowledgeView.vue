@@ -1,9 +1,13 @@
 <script setup>
 import PageHead from '@/components/backend/PageHead.vue'
 import TableSearch from '@/components/backend/TableSearch.vue'
+import ArticalDialog from '@/components/backend/ArticalDialog.vue'
 import { categoryTreeApi, articlePageApi } from '@/apis/admin'
 import { onMounted, ref } from 'vue'
 
+//定义弹窗是否显示的变量
+const dialogVisible = ref(false)
+const handleClose = () => {}
 const formItem = ref([
   {
     label: '文章标题',
@@ -82,7 +86,7 @@ onMounted(async () => {
   <div>
     <PageHead title="知识文章">
       <template #buttons>
-        <el-button type="primary">新增按钮</el-button>
+        <el-button type="primary" @click="dialogVisible = true">新增按钮</el-button>
       </template>
     </PageHead>
     <!-- 监听子组件同名事件search，收到子组件传过来的数据后，调用handleSearch函数 -->
@@ -127,5 +131,6 @@ onMounted(async () => {
       :page-size="pagination.size"
       @change="handleChange"
     />
+    <ArticalDialog v-model:visible="dialogVisible" />
   </div>
 </template>

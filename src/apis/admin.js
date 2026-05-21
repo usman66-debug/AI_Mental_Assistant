@@ -9,5 +9,5 @@ export const categoryTreeApi = () => {
 }
 
 export const articlePageApi = (params) => {
-  return service.post('/knowledge/article/page', { params })
+  return service.get('/knowledge/article/page', { params })
 }

@@ -42,6 +42,21 @@ const formItem = ref([
 const categoryMap = ref({})
 //定义分类菜单选项，比如[{label:'心理健康基础',value:'1'}],作为select组件的options属性
 const categoryOptions = ref([])
+const pagination = ref({
+  currentPage: 1,
+  size: 10,
+  total: 0,
+})
+const tableData = ref([])
+const handleSearch = async (data) => {
+  const queryData = {
+    ...data,
+    ...pagination.value,
+  }
+  const { records, total } = await articlePageApi(queryData)
+  tableData.value = records
+  //在编写过程中有时候会出现后端返回字段不包含records的情况，排查后发现重新登录就正常了，有可能是token过期了
+}
 onMounted(async () => {
   const data = await categoryTreeApi()
 
@@ -53,11 +68,8 @@ onMounted(async () => {
     }
   })
   formItem.value[1].options = categoryOptions.value
+  handleSearch()
 })
-
-const handleSearch = (data) => {
-  console.log(data)
-}
 </script>
 
 <template>
@@ -69,5 +81,38 @@ const handleSearch = (data) => {
     </PageHead>
     <!-- 监听子组件同名事件search，收到子组件传过来的数据后，调用handleSearch函数 -->
     <TableSearch :formItem="formItem" @search="handleSearch" />
+    <el-table :data="tableData" style="width: 100%; margin-top: 25px">
+      <el-table-column label="文章标题" fixed="left" width="504">
+        <template #default="scope">
+          <div style="display: flex; align-items: center">
+            <el-icon><timer /></el-icon>
+            <span>{{ scope.row.title }}</span>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="分类" width="200">
+        <template #default="scope">
+          <div style="display: flex; align-items: center">
+            <el-icon><timer /></el-icon>
+            <span>{{ categoryMap[scope.row.categoryId] }}</span>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column prop="authorName" label="作者" width="200" />
+      <el-table-column prop="readCount" label="阅读量" width="200" />
+      <el-table-column prop="createdAt" label="发布时间" width="200" />
+      <el-table-column label="操作" width="200" fixed="right">
+        <template #default="scope">
+          <div style="display: flex; align-items: center">
+            <el-button text type="primary">编辑</el-button>
+            <el-button text v-if="scope.row.status === 0 || scope.row.status === 2" type="success"
+              >发布</el-button
+            >
+            <el-button text v-if="scope.row.status === 1" type="warning">下线</el-button>
+            <el-button text type="danger">删除</el-button>
+          </div>
+        </template>
+      </el-table-column>
+    </el-table>
   </div>
 </template>

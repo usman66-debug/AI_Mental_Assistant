@@ -56,6 +56,12 @@ const handleSearch = async (data) => {
   const { records, total } = await articlePageApi(queryData)
   tableData.value = records
   //在编写过程中有时候会出现后端返回字段不包含records的情况，排查后发现重新登录就正常了，有可能是token过期了
+  pagination.value.total = total
+}
+//当分页组件的currentPage属性改变时，调用handleChange函数（val为当前页码）
+const handleChange = (val) => {
+  pagination.value.currentPage = val
+  handleSearch()
 }
 onMounted(async () => {
   const data = await categoryTreeApi()
@@ -114,5 +120,12 @@ onMounted(async () => {
         </template>
       </el-table-column>
     </el-table>
+    <el-pagination
+      style="margin-top: 25px"
+      layout="prev, pager, next"
+      :total="pagination.total"
+      :page-size="pagination.size"
+      @change="handleChange"
+    />
   </div>
 </template>

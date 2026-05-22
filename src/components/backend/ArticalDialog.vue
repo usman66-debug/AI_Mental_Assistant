@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { uploadAvatarApi } from '@/apis/admin'
 import { imgUrlAt } from '@/config/index'
+import RichTextEditor from '@/components/backend/RichTextEditor.vue'
 
 // 定义emit事件，用于向父组件传递状态变化
 // 'update:visible' 是Vue v-model的标准事件名
@@ -103,6 +104,8 @@ const clearImage = () => {
   imgUrl.value = ''
   formData.value.coverImage = ''
 }
+const handleContentChange = () => {}
+const handleEditorCreated = () => {}
 </script>
 
 <template>
@@ -170,6 +173,16 @@ const clearImage = () => {
             <el-button type="danger" size="small" @click="clearImage">删除封面</el-button>
           </div>
         </div>
+      </el-form-item>
+      <el-form-item label="文章内容" prop="content">
+        <RichTextEditor
+          v-model="formData.content"
+          placeholder="请输入文章内容，支持富文本格式\n\n可以使用加粗、斜体、列表、标题等格式来丰富文章内容"
+          :maxCharCount="5000"
+          @change="handleContentChange"
+          @created="handleEditorCreated"
+          min-height="400px"
+        />
       </el-form-item>
     </el-form>
   </el-dialog>

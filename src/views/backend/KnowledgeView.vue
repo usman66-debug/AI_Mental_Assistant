@@ -131,6 +131,6 @@ onMounted(async () => {
       :page-size="pagination.size"
       @change="handleChange"
     />
-    <ArticalDialog v-model:visible="dialogVisible" />
+    <ArticalDialog v-model:visible="dialogVisible" :categoryOptions="categoryOptions" />
   </div>
 </template>

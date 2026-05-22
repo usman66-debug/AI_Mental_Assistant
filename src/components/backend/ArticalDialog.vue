@@ -1,5 +1,8 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { ElMessage } from 'element-plus'
+import { uploadAvatarApi } from '@/apis/admin'
+import { imgUrlAt } from '@/config/index'
 
 // 定义emit事件，用于向父组件传递状态变化
 // 'update:visible' 是Vue v-model的标准事件名
@@ -11,21 +14,40 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  categoryOptions: {
+    type: Array,
+    default: () => [],
+  },
 })
 const formData = ref({
   title: '',
   content: '',
   coverImage: '',
-  categoryId: 0,
+  categoryId: 1,
   summary: '',
   tags: '',
   id: '',
 })
+const commonTags = ref([
+  '情绪管理',
+  '焦虑',
+  '抑郁',
+  '压力',
+  '睡眠',
+  '冥想',
+  '正念',
+  '放松',
+  '心理健康',
+  '自我成长',
+  '人际关系',
+  '工作压力',
+  '学习方法',
+  '生活技巧',
+])
+const imgUrl = ref('')
 const rules = ref({
-  title: [
-    { required: true, message: '请输入文章标题', trigger: 'blur' },
-    { min: 2, max: 200, message: '文章标题长度必须在2到200个字符之间', trigger: 'blur' },
-  ],
+  title: [{ required: true, message: '请输入文章标题', trigger: 'blur' }],
+  categoryId: [{ required: true, message: '请选择所属分类', trigger: 'change' }],
 })
 
 /**
@@ -55,10 +77,36 @@ const dialogVisible = computed({
 // 预留的关闭处理函数，可用于在弹窗关闭前做一些处理（如表单验证）
 // 使用方式：在el-dialog上添加 @close="handleClose"
 const handleClose = () => {}
+// 选择图片后会传入一个file属性
+const beforeAvatarUpload = (file) => {
+  const isImage = file.type.startsWith('image/')
+  const isLt5M = file.size / 1024 / 1024 < 5
+  if (!isImage) {
+    ElMessage.error('请上传图片格式的文件')
+    return false
+  }
+  if (!isLt5M) {
+    ElMessage.error('上传图片大小不能超过5MB')
+    return false
+  }
+  return true
+}
+const handleUploadRequest = async ({ file }) => {
+  //随机生成一个uid
+  const businessId = crypto.randomUUID()
+  const res = await uploadAvatarApi(file, businessId)
+  imgUrl.value = imgUrlAt + res.filePath
+  formData.value.coverImage = res.filePath
+  console.log(res)
+}
+const clearImage = () => {
+  imgUrl.value = ''
+  formData.value.coverImage = ''
+}
 </script>
 
 <template>
-  <el-dialog v-model="dialogVisible" title="编辑文章" width="500">
+  <el-dialog v-model="dialogVisible" title="编辑文章" width="50%">
     <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px">
       <el-form-item label="文章标题" prop="title">
         <el-input
@@ -69,6 +117,78 @@ const handleClose = () => {}
           clearable
         />
       </el-form-item>
+      <el-form-item label="所属分类" prop="categoryId">
+        <el-select v-model="formData.categoryId">
+          <el-option
+            v-for="item in categoryOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="文章摘要" prop="summary">
+        <el-input
+          v-model="formData.summary"
+          type="textarea"
+          placeholder="请输入文章摘要（可选）"
+          maxlength="1000"
+          show-word-limit
+          :rows="4"
+        />
+      </el-form-item>
+      <el-form-item label="标签" prop="tags">
+        <el-select
+          v-model="formData.tagArray"
+          placeholder="请选择标签（可多选）"
+          filterable
+          clearable
+          multiple
+          allow-create
+        >
+          <el-option v-for="item in commonTags" :key="item" :label="item" :value="item" />
+        </el-select>
+      </el-form-item>
+      <!--因为我们要自定义上传规则，所以这里不需要使用prop，prop主要是拿来和表单校验联动的-->
+      <el-form-item label="封面图片">
+        <div>
+          <!-- 后端接收图片的接口action、http-request上传请求的方法、accept指定上传的文件类型为图片格式 -->
+          <el-upload
+            class="avatar-uploader"
+            action="#"
+            :before-upload="beforeAvatarUpload"
+            :http-request="handleUploadRequest"
+            :show-file-list="false"
+            accept="image/*"
+          >
+            <div v-if="!imgUrl" class="cover-placeholder">
+              <p>点击上传封面图片</p>
+            </div>
+            <img v-else :src="imgUrl" alt="封面图片" class="cover-image" />
+          </el-upload>
+          <div v-if="imgUrl">
+            <el-button type="danger" size="small" @click="clearImage">删除封面</el-button>
+          </div>
+        </div>
+      </el-form-item>
     </el-form>
   </el-dialog>
 </template>
+
+<style scoped lang="scss">
+.cover-placeholder {
+  width: 200px;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #8b949e;
+  background: #f6f8fa;
+}
+.cover-image {
+  width: 200px;
+  height: 120px;
+  display: block;
+}
+</style>

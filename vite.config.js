@@ -11,6 +11,7 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  //解决跨域问题
   server: {
     proxy: {
       '/api': {

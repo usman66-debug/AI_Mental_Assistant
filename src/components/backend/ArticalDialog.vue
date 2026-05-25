@@ -1,12 +1,11 @@
 <script setup>
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { uploadAvatarApi, createArticleApi } from '@/apis/admin'
 import { imgUrlAt } from '@/config/index'
 import RichTextEditor from '@/components/backend/RichTextEditor.vue'
 
 // 定义emit事件，用于向父组件传递状态变化
-// 'update:visible' 是Vue v-model的标准事件名
 const emit = defineEmits(['update:visible', 'success'])
 
 // 定义props，接收父组件传递的visible状态
@@ -19,7 +18,13 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  artical: {
+    type: Object,
+    default: null,
+  },
 })
+//双感叹号表示转换为布尔值
+const isEdit = computed(() => !!props.artical?.id)
 const formData = ref({
   title: '',
   content: '',
@@ -92,7 +97,13 @@ const dialogVisible = computed({
 
 // 预留的关闭处理函数，可用于在弹窗关闭前做一些处理（如表单验证）
 // 使用方式：在el-dialog上添加 @close="handleClose"
-const handleClose = () => {}
+const handleClose = () => {
+  formRef.value.resetFields()
+  businessId.value = null
+  formData.value.tagArray = []
+  clearImage()
+  emit('update:visible', false)
+}
 // 选择图片后会传入一个file属性
 const beforeAvatarUpload = (file) => {
   const isImage = file.type.startsWith('image/')
@@ -107,10 +118,11 @@ const beforeAvatarUpload = (file) => {
   }
   return true
 }
+const businessId = ref(null)
 const handleUploadRequest = async ({ file }) => {
   //随机生成一个uid
-  const businessId = crypto.randomUUID()
-  const res = await uploadAvatarApi(file, businessId)
+  businessId.value = crypto.randomUUID()
+  const res = await uploadAvatarApi(file, businessId.value)
   imgUrl.value = imgUrlAt + res.filePath
   formData.value.coverImage = res.filePath
   console.log(res)
@@ -138,6 +150,22 @@ const handleEditorCreated = (editor) => {
     })
   }
 }
+// 监听artical属性变化，当artical变化时，将artical赋值给formData
+watch(
+  () => props.artical,
+  (newVal) => {
+    if (newVal) {
+      //因为artical是异步赋值的，所以这里要使用nextTick()方法，确保artical赋值完成后再执行赋值操作
+      nextTick(() => {
+        //formData不能直接赋值，否则会导致响应式系统失效，需要使用Object.assign()方法
+        Object.assign(formData.value, newVal)
+        businessId.value = newVal.id
+        imgUrl.value = imgUrlAt + newVal.coverImage
+      })
+    }
+  },
+)
+
 const formRef = ref(null)
 const loading = ref(false)
 const handleSubmit = async () => {
@@ -163,7 +191,7 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <el-dialog v-model="dialogVisible" title="编辑文章" width="50%">
+  <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑文章' : '新增文章'" width="50%">
     <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px">
       <el-form-item label="文章标题" prop="title">
         <el-input
@@ -249,7 +277,9 @@ const handleSubmit = async () => {
       }}</el-button>
       <el-button type="primary" @click="handleClose">取消</el-button>
       <!-- 为了防止重复提交，添加loadingloading状态 -->
-      <el-button type="primary" @click="handleSubmit" :loading="loading">创建</el-button>
+      <el-button type="primary" @click="handleSubmit" :loading="loading">
+        {{ isEdit ? '更新文章' : '新增文章' }}
+      </el-button>
     </template>
   </el-dialog>
 </template>

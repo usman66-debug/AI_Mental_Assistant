@@ -2,7 +2,7 @@
 import PageHead from '@/components/backend/PageHead.vue'
 import TableSearch from '@/components/backend/TableSearch.vue'
 import ArticalDialog from '@/components/backend/ArticalDialog.vue'
-import { categoryTreeApi, articlePageApi } from '@/apis/admin'
+import { categoryTreeApi, articlePageApi, getArticalDetailApi } from '@/apis/admin'
 import { onMounted, ref } from 'vue'
 
 //定义弹窗是否显示的变量
@@ -83,13 +83,31 @@ onMounted(async () => {
 const handleSuccess = () => {
   handleSearch()
 }
+//编辑文章
+const currentArtical = ref(null)
+const handleEdit = (row) => {
+  if (!row.id) {
+    //新增文章
+    //得清除弹窗中的数据
+    currentArtical.value = null
+    dialogVisible.value = true
+  } else {
+    //编辑文章
+    getArticalDetailApi(row.id).then((res) => {
+      console.log(res, '编辑文章详情')
+      currentArtical.value = res
+      dialogVisible.value = true
+    })
+  }
+}
 </script>
 
 <template>
   <div>
     <PageHead title="知识文章">
       <template #buttons>
-        <el-button type="primary" @click="dialogVisible = true">新增按钮</el-button>
+        <!-- 空对象可以读取不存在的属性，只是得到 undefined,而null 根本不能读取属性，所以不能写@click="handleEdit(null) -->
+        <el-button type="primary" @click="handleEdit({})">新增按钮</el-button>
       </template>
     </PageHead>
     <!-- 监听子组件同名事件search，收到子组件传过来的数据后，调用handleSearch函数 -->
@@ -117,7 +135,7 @@ const handleSuccess = () => {
       <el-table-column label="操作" width="200" fixed="right">
         <template #default="scope">
           <div style="display: flex; align-items: center">
-            <el-button text type="primary">编辑</el-button>
+            <el-button text type="primary" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button text v-if="scope.row.status === 0 || scope.row.status === 2" type="success"
               >发布</el-button
             >
@@ -137,6 +155,7 @@ const handleSuccess = () => {
     <ArticalDialog
       v-model:visible="dialogVisible"
       :categoryOptions="categoryOptions"
+      :artical="currentArtical"
       @success="handleSuccess"
     />
   </div>

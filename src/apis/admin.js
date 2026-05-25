@@ -22,3 +22,7 @@ export const uploadAvatarApi = (fileForm, businessId) => {
 
   return service.post('file/upload', formData)
 }
+
+export const createArticleApi = (data) => {
+  return service.post('/knowledge/article', data)
+}

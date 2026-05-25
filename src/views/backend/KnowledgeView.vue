@@ -80,6 +80,9 @@ onMounted(async () => {
   formItem.value[1].options = categoryOptions.value
   handleSearch()
 })
+const handleSuccess = () => {
+  handleSearch()
+}
 </script>
 
 <template>
@@ -131,6 +134,10 @@ onMounted(async () => {
       :page-size="pagination.size"
       @change="handleChange"
     />
-    <ArticalDialog v-model:visible="dialogVisible" :categoryOptions="categoryOptions" />
+    <ArticalDialog
+      v-model:visible="dialogVisible"
+      :categoryOptions="categoryOptions"
+      @success="handleSuccess"
+    />
   </div>
 </template>

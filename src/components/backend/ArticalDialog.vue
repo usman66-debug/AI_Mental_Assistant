@@ -1,13 +1,13 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
-import { uploadAvatarApi } from '@/apis/admin'
+import { uploadAvatarApi, createArticleApi } from '@/apis/admin'
 import { imgUrlAt } from '@/config/index'
 import RichTextEditor from '@/components/backend/RichTextEditor.vue'
 
 // 定义emit事件，用于向父组件传递状态变化
 // 'update:visible' 是Vue v-model的标准事件名
-const emit = defineEmits(['update:visible'])
+const emit = defineEmits(['update:visible', 'success'])
 
 // 定义props，接收父组件传递的visible状态
 const props = defineProps({
@@ -47,8 +47,23 @@ const commonTags = ref([
 ])
 const imgUrl = ref('')
 const rules = ref({
-  title: [{ required: true, message: '请输入文章标题', trigger: 'blur' }],
+  title: [
+    { required: true, message: '请输入文章标题', trigger: 'blur' },
+    {
+      max: 200,
+      message: '文章标题最多200个字符',
+      trigger: 'blur',
+    },
+  ],
   categoryId: [{ required: true, message: '请选择所属分类', trigger: 'change' }],
+  content: [
+    { required: true, message: '请输入文章内容', trigger: 'blur' },
+    {
+      max: 5000,
+      message: '文章内容最多5000个字符',
+      trigger: 'blur',
+    },
+  ],
 })
 
 /**
@@ -104,8 +119,47 @@ const clearImage = () => {
   imgUrl.value = ''
   formData.value.coverImage = ''
 }
-const handleContentChange = () => {}
-const handleEditorCreated = () => {}
+//预览文章
+const btnPreview = ref(false)
+//当编辑器中内容改变时，将内容赋值给formData.content属性
+//传data.html内容是因为要传完整的带已编辑格式的文章内容
+const handleContentChange = (data) => {
+  formData.value.content = data.html
+}
+//在 RichTextEditor.vue 中，当编辑器初始化完成后，会触发 @onCreated 事件
+//把编辑器实例保存到响应式变量中，方便当前组件其他方法随时使用它，如果不保存 editorInstance，那么 editor 只在这个函数里临时存在，函数执行完以后，其他地方就拿不到这个编辑器对象了
+const editorInstance = ref(null)
+const handleEditorCreated = (editor) => {
+  editorInstance.value = editor
+  //如果是编辑
+  if (formData.value.content && editor) {
+    nextTick(() => {
+      editor.setHtml(formData.value.content)
+    })
+  }
+}
+const formRef = ref(null)
+const loading = ref(false)
+const handleSubmit = async () => {
+  await formRef.value.validate((valid) => {
+    if (valid) {
+      loading.value = true
+    }
+    console.log(formData.value, '666')
+    //因为表单存的是数组形式的tags，但是后端接口要求上传的tags是字符串形式，所以这里要将数组转换为字符串
+    const submitData = {
+      ...formData.value,
+      tags: formData.value.tagArray.join(','),
+    }
+    delete submitData.tagArray
+
+    createArticleApi(submitData).then(() => {
+      loading.value = false
+      ElMessage.success('发表文章成功')
+      emit('success')
+    })
+  })
+}
 </script>
 
 <template>
@@ -185,6 +239,18 @@ const handleEditorCreated = () => {}
         />
       </el-form-item>
     </el-form>
+    <div v-if="btnPreview">
+      <h3>文章预览</h3>
+      <div v-html="formData.content"></div>
+    </div>
+    <template #footer>
+      <el-button @click="btnPreview = !btnPreview">{{
+        btnPreview ? '隐藏预览' : '显示预览'
+      }}</el-button>
+      <el-button type="primary" @click="handleClose">取消</el-button>
+      <!-- 为了防止重复提交，添加loadingloading状态 -->
+      <el-button type="primary" @click="handleSubmit" :loading="loading">创建</el-button>
+    </template>
   </el-dialog>
 </template>
 

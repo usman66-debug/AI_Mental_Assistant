@@ -2,8 +2,15 @@
 import PageHead from '@/components/backend/PageHead.vue'
 import TableSearch from '@/components/backend/TableSearch.vue'
 import ArticalDialog from '@/components/backend/ArticalDialog.vue'
-import { categoryTreeApi, articlePageApi, getArticalDetailApi } from '@/apis/admin'
+import {
+  categoryTreeApi,
+  articlePageApi,
+  getArticalDetailApi,
+  publishArticleApi,
+  deleteArticleApi,
+} from '@/apis/admin'
 import { onMounted, ref } from 'vue'
+import { ElMessageBox, ElMessage } from 'element-plus'
 
 //定义弹窗是否显示的变量
 const dialogVisible = ref(false)
@@ -100,6 +107,55 @@ const handleEdit = (row) => {
     })
   }
 }
+
+const handlePublish = (row) => {
+  ElMessageBox.confirm(`确认发布文章${row.title}吗？`, '确认', {
+    confirmButtonText: '确认发布',
+    cancelButtonText: '取消',
+    type: 'info',
+  })
+    .then(() => {
+      publishArticleApi(row.id, { status: 1 }).then(() => {
+        ElMessage.success('发布成功')
+        handleSearch()
+      })
+    })
+    .catch(() => {
+      ElMessage.info('已取消发布')
+    })
+}
+const handleOffline = (row) => {
+  ElMessageBox.confirm(`确认下线文章${row.title}吗？`, '确认', {
+    confirmButtonText: '确认下线',
+    cancelButtonText: '取消',
+    type: 'warning',
+  })
+    .then(() => {
+      publishArticleApi(row.id, { status: 2 }).then(() => {
+        ElMessage.success('下线成功')
+        handleSearch()
+      })
+    })
+    .catch(() => {
+      ElMessage.info('已取消下线')
+    })
+}
+const handleDelete = (row) => {
+  ElMessageBox.confirm(`确认删除文章${row.title}吗？`, '确认', {
+    confirmButtonText: '确认删除',
+    cancelButtonText: '取消',
+    type: 'danger',
+  })
+    .then(() => {
+      deleteArticleApi(row.id).then(() => {
+        ElMessage.success('删除成功')
+        handleSearch()
+      })
+    })
+    .catch(() => {
+      ElMessage.info('已取消删除')
+    })
+}
 </script>
 
 <template>
@@ -136,11 +192,21 @@ const handleEdit = (row) => {
         <template #default="scope">
           <div style="display: flex; align-items: center">
             <el-button text type="primary" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button text v-if="scope.row.status === 0 || scope.row.status === 2" type="success"
+            <el-button
+              @click="handlePublish(scope.row)"
+              text
+              v-if="scope.row.status === 0 || scope.row.status === 2"
+              type="success"
               >发布</el-button
             >
-            <el-button text v-if="scope.row.status === 1" type="warning">下线</el-button>
-            <el-button text type="danger">删除</el-button>
+            <el-button
+              @click="handleOffline(scope.row)"
+              text
+              v-if="scope.row.status === 1"
+              type="warning"
+              >下线</el-button
+            >
+            <el-button @click="handleDelete(scope.row)" text type="danger">删除</el-button>
           </div>
         </template>
       </el-table-column>

@@ -34,3 +34,11 @@ export const getArticalDetailApi = (id) => {
 export const updateArticleApi = (id, data) => {
   return service.put(`/knowledge/article/${id}`, data)
 }
+
+export const publishArticleApi = (id, data) => {
+  return service.put(`/knowledge/article/${id}/status`, data)
+}
+
+export const deleteArticleApi = (id) => {
+  return service.delete(`/knowledge/article/${id}`)
+}

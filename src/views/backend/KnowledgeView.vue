@@ -7,7 +7,6 @@ import { onMounted, ref } from 'vue'
 
 //定义弹窗是否显示的变量
 const dialogVisible = ref(false)
-const handleClose = () => {}
 const formItem = ref([
   {
     label: '文章标题',
@@ -81,6 +80,7 @@ onMounted(async () => {
   handleSearch()
 })
 const handleSuccess = () => {
+  dialogVisible.value = false
   handleSearch()
 }
 //编辑文章

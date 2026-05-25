@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, nextTick, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { uploadAvatarApi, createArticleApi } from '@/apis/admin'
+import { uploadAvatarApi, createArticleApi, updateArticleApi } from '@/apis/admin'
 import { imgUrlAt } from '@/config/index'
 import RichTextEditor from '@/components/backend/RichTextEditor.vue'
 
@@ -180,12 +180,20 @@ const handleSubmit = async () => {
       tags: formData.value.tagArray.join(','),
     }
     delete submitData.tagArray
-
-    createArticleApi(submitData).then(() => {
-      loading.value = false
-      ElMessage.success('发表文章成功')
-      emit('success')
-    })
+    if (!isEdit.value) {
+      submitData.id = businessId.value
+      createArticleApi(submitData).then(() => {
+        loading.value = false
+        ElMessage.success('发表文章成功')
+        emit('success')
+      })
+    } else {
+      updateArticleApi(props.artical.id, submitData).then(() => {
+        loading.value = false
+        ElMessage.success('更新文章成功')
+        emit('success')
+      })
+    }
   })
 }
 </script>

@@ -30,3 +30,7 @@ export const createArticleApi = (data) => {
 export const getArticalDetailApi = (id) => {
   return service.get(`/knowledge/article/${id}`)
 }
+
+export const updateArticleApi = (id, data) => {
+  return service.put(`/knowledge/article/${id}`, data)
+}

@@ -42,3 +42,7 @@ export const publishArticleApi = (id, data) => {
 export const deleteArticleApi = (id) => {
   return service.delete(`/knowledge/article/${id}`)
 }
+
+export const getConsultationPageApi = (params) => {
+  return service.get('psychological-chat/sessions', { params })
+}

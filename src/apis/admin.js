@@ -50,3 +50,7 @@ export const getConsultationPageApi = (params) => {
 export const getConsultationDetailApi = (id) => {
   return service.get(`psychological-chat/sessions/${id}/messages`)
 }
+
+export const getEmotionalPageApi = (params) => {
+  return service.get('emotion-diary/admin/page', { params })
+}

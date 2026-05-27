@@ -46,3 +46,7 @@ export const deleteArticleApi = (id) => {
 export const getConsultationPageApi = (params) => {
   return service.get('psychological-chat/sessions', { params })
 }
+
+export const getConsultationDetailApi = (id) => {
+  return service.get(`psychological-chat/sessions/${id}/messages`)
+}

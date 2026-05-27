@@ -54,3 +54,7 @@ export const getConsultationDetailApi = (id) => {
 export const getEmotionalPageApi = (params) => {
   return service.get('emotion-diary/admin/page', { params })
 }
+
+export const deleteEmotionalDiaryApi = (id) => {
+  return service.delete(`emotion-diary/admin/${id}`)
+}

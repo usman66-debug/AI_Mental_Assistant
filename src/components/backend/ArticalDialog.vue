@@ -199,7 +199,12 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑文章' : '新增文章'" width="50%">
+  <el-dialog
+    v-model="dialogVisible"
+    :title="isEdit ? '编辑文章' : '新增文章'"
+    width="50%"
+    @close="handleClose"
+  >
     <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px">
       <el-form-item label="文章标题" prop="title">
         <el-input

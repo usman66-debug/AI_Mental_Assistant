@@ -20,7 +20,7 @@ export const uploadAvatarApi = (fileForm, businessId) => {
   formData.append('businessId', businessId)
   formData.append('businessField', 'cover')
 
-  return service.post('file/upload', formData)
+  return service.post('/file/upload', formData)
 }
 
 export const createArticleApi = (data) => {
@@ -44,17 +44,21 @@ export const deleteArticleApi = (id) => {
 }
 
 export const getConsultationPageApi = (params) => {
-  return service.get('psychological-chat/sessions', { params })
+  return service.get('/psychological-chat/sessions', { params })
 }
 
 export const getConsultationDetailApi = (id) => {
-  return service.get(`psychological-chat/sessions/${id}/messages`)
+  return service.get(`/psychological-chat/sessions/${id}/messages`)
 }
 
 export const getEmotionalPageApi = (params) => {
-  return service.get('emotion-diary/admin/page', { params })
+  return service.get('/emotion-diary/admin/page', { params })
 }
 
 export const deleteEmotionalDiaryApi = (id) => {
-  return service.delete(`emotion-diary/admin/${id}`)
+  return service.delete(`/emotion-diary/admin/${id}`)
+}
+
+export const getAnalysisOverviewApi = () => {
+  return service.get(`/data-analytics/overview`)
 }

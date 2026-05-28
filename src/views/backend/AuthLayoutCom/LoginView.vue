@@ -26,6 +26,7 @@ const submitForm = async () => {
     if (valid) {
       loginApi(formData.value).then((data) => {
         //如果后端未返回token，提示用户登录失败
+        console.log(data)
         if (!data.token) {
           ElMessage.error(data.msg || '登录失败，请检查用户名或密码')
           return Promise.reject('登录失败')
@@ -33,7 +34,7 @@ const submitForm = async () => {
           ElMessage.success(data.msg || '登录成功')
           //将token存储到localStorage中
           localStorage.setItem('token', data.token)
-          localStorage.setItem('userinfo', JSON.stringify(data.userinfo))
+          localStorage.setItem('userinfo', JSON.stringify(data.userInfo))
           if (data.userInfo.userType === 2) {
             router.push('/back')
           } else {

@@ -62,3 +62,7 @@ export const deleteEmotionalDiaryApi = (id) => {
 export const getAnalysisOverviewApi = () => {
   return service.get(`/data-analytics/overview`)
 }
+
+export const logoutApi = () => {
+  return service.post('/user/logout')
+}

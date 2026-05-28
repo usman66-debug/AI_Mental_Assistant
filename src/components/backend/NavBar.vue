@@ -1,10 +1,29 @@
 <script setup>
 import { useAdimnStore } from '@/stores/admin'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessageBox } from 'element-plus'
+import { logoutApi } from '@/apis/admin'
 
+const route = useRoute()
+const router = useRouter()
 const adminStore = useAdimnStore()
 const handleCommand = (command) => {
   if (command === 'logout') {
-    console.log('退出登录')
+    ElMessageBox.confirm('确定退出登录吗？', '退出登录', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+      .then(() => {
+        logoutApi().then(() => {
+          localStorage.removeItem('token')
+          localStorage.removeItem('userinfo')
+          router.push('/auth/login')
+        })
+      })
+      .catch(() => {
+        // 取消退出登录
+      })
   }
 }
 </script>
@@ -15,7 +34,7 @@ const handleCommand = (command) => {
       <el-button @click="adminStore.toggleCollapse"
         ><el-icon><Expand /></el-icon
       ></el-button>
-      <p class="page-title">导航栏</p>
+      <p class="page-title">{{ route.meta.title }}</p>
     </div>
     <el-dropdown @command="handleCommand">
       <div class="flex-box">

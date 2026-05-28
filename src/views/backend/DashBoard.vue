@@ -1,6 +1,7 @@
 <script setup>
 import { getAnalysisOverviewApi } from '@/apis/admin'
 import { ref, onMounted } from 'vue'
+import * as echarts from 'echarts'
 
 //统计图片的引入
 // 在 JS 中引入 assets 本地图片：import.meta.url 表示当前文件的位置，
@@ -13,10 +14,130 @@ const iconUrl4 = new URL('@/assets/images/smile.png', import.meta.url).href
 
 const aiData = ref({})
 
+//情绪趋势
+let emotionChart = null
+const emotionChartRef = ref(null)
+//初始化图表
+const initCharts = () => {
+  innitEmotionChart()
+}
+//把整个页面所有的图表初始化封装在一个方法里
+const innitEmotionChart = () => {
+  //判断当前DOM节点是否存在
+  if (!emotionChartRef.value) {
+    return
+  }
+  //销毁旧的图表，图表根据数据实时更新
+  if (emotionChart) {
+    emotionChart.dispose()
+  }
+  //创建echarts实例
+  emotionChart = echarts.init(emotionChartRef.value)
+  //获取情绪趋势的数据
+  const trendData = aiData.value.emotionTrend
+  //配置项
+  const option = {
+    // 图表标题
+    title: {
+      text: '情绪趋势分析',
+      textStyle: {
+        color: '#2d3436',
+        fontSize: 16,
+        fontWeight: '600',
+      },
+      left: 'center',
+      top: 10,
+    },
+    // 图表提示框
+    tooltip: {
+      trigger: 'axis',
+      borderColor: '#fab1a0',
+      borderWidth: 1,
+      textStyle: {
+        color: '#2d3436',
+      },
+    },
+    legend: {
+      data: ['平均情绪评分', '记录数量'],
+      top: 40,
+    },
+    xAxis: {
+      type: 'category',
+      data: trendData.map((item) => item.date),
+      axisLine: {
+        lineStyle: {
+          color: '#2d3436',
+        },
+      },
+    },
+    //左右两个y轴的配置
+    yAxis: [
+      {
+        type: 'value',
+        name: '情绪评分',
+        position: 'left',
+        axisLine: {
+          lineStyle: {
+            color: '#2d3436',
+          },
+        },
+      },
+      {
+        type: 'value',
+        name: '记录数量',
+        position: 'right',
+        axisLine: {
+          lineStyle: {
+            color: '#2d3436',
+          },
+        },
+      },
+    ],
+    //折线图的配置
+    series: [
+      {
+        name: '平均情绪评分',
+        type: 'line',
+        data: trendData.map((item) => item.avgMoodScore),
+        smooth: true,
+        lineStyle: {
+          width: 3,
+          color: '#faebaf',
+        },
+        itemStyle: {
+          color: '#faebaf',
+        },
+      },
+      {
+        name: '记录数量',
+        type: 'line',
+        data: trendData.map((item) => item.recordCount),
+        smooth: true,
+        lineStyle: {
+          width: 3,
+          color: '#eeb5a3',
+        },
+        itemStyle: {
+          color: '#eeb5a3',
+        },
+      },
+    ],
+    grid: {
+      top: 80,
+      bottom: '3%',
+      left: '3%',
+      right: '4%',
+    },
+  }
+  //设置图表配置项
+  emotionChart.setOption(option)
+}
+
 onMounted(async () => {
   const res = await getAnalysisOverviewApi()
   console.log(res)
   aiData.value = res
+  initCharts()
 })
 </script>
 
@@ -76,6 +197,18 @@ onMounted(async () => {
               <p class="number">{{ aiData.systemOverview.avgMoodScore }}/10</p>
               <p class="subtitle-title">情绪健康指数</p>
             </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+    <el-row style="margin-top: 20px" :gutter="20">
+      <el-col :span="12">
+        <el-card style="width: 100%">
+          <template #header>
+            <div class="card-header">情绪趋势分析</div>
+          </template>
+          <div class="chart-content">
+            <div ref="emotionChartRef" style="width: 100%; height: 300px"></div>
           </div>
         </el-card>
       </el-col>

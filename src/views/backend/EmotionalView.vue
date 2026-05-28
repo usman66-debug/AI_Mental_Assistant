@@ -22,6 +22,7 @@ const getEmotionTagType = (emotion) => {
 const getAiEmotionTagType = (emotion) => {
   const emotionTagMap = {
     快乐: 'success',
+    开心: 'success',
     平静: 'success',
     兴奋: 'warning',
     满足: 'success',
@@ -254,7 +255,7 @@ onMounted(() => {
             <div class="ai-improvements-section">
               <h5>改善建议</h5>
               <ul class="impovement-list">
-                <li v-for="item in aiData.improvementsSuggestions" :key="item">
+                <li v-for="item in aiData.improvementSuggestions" :key="item">
                   {{ item || '无' }}
                 </li>
               </ul>

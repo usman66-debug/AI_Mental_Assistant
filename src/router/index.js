@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import FrontendLayout from '@/components/frontend/FrontendLayout.vue'
 //前台页面后台页面风格迥异，建议写两个不同的路由配置
 const backendRoutes = [
   {
@@ -47,14 +48,14 @@ const backendRoutes = [
     children: [
       {
         path: 'register',
-        component: () => import('@/views/backend/AuthLayoutCom/RegisterView.vue'),
+        component: () => import('@/views/AuthLayoutCom/RegisterView.vue'),
         meta: {
           title: '注册',
         },
       },
       {
         path: 'login',
-        component: () => import('@/views/backend/AuthLayoutCom/LoginView.vue'),
+        component: () => import('@/views/AuthLayoutCom/LoginView.vue'),
         meta: {
           title: '登录',
         },
@@ -63,9 +64,17 @@ const backendRoutes = [
   },
 ]
 
+const frontendRoutes = [
+  {
+    path: '/',
+    component: FrontendLayout,
+    children: [],
+  },
+]
+//创建路由器
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes: backendRoutes,
+  routes: [...backendRoutes, ...frontendRoutes],
 })
 
 //配置路由前置守卫

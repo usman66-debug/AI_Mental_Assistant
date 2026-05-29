@@ -68,7 +68,24 @@ const frontendRoutes = [
   {
     path: '/',
     component: FrontendLayout,
-    children: [],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/frontend/HomeView.vue'),
+      },
+      {
+        path: 'knowledge',
+        component: () => import('@/views/frontend/FrontKnowledgeView.vue'),
+      },
+      {
+        path: 'consultation',
+        component: () => import('@/views/frontend/ConsultationView.vue'),
+      },
+      {
+        path: 'emotion-diary',
+        component: () => import('@/views/frontend/EmotionDiary.vue'),
+      },
+    ],
   },
 ]
 //创建路由器

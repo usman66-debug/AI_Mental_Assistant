@@ -107,10 +107,16 @@ router.beforeEach((to, from, next) => {
         //放行到相应页面
         next()
       } else {
+        //要是输入其他不合规的路径，重定向到后台首页
         next('/back/dashboard')
       }
     } else if (userInfo.userType === 1) {
-      //前台用户，直接放行
+      //用户端账号，只能访问前台路由，并且登录后的用户端账号不能再次访问登录页和注册页
+      if (to.path.startsWith('/back') || to.path.startsWith('/auth')) {
+        next('/')
+      } else {
+        next()
+      }
     }
   } else {
     //没有登录的话，判断想访问的是后台页面还是前台页面

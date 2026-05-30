@@ -14,7 +14,7 @@ const formData = ref({
   password: '',
   confirmPassword: '',
   gender: 0,
-  userType: 1,
+  userType: 1, //用户类型，默认是用户端
 })
 
 const rules = ref({
@@ -41,7 +41,7 @@ const submitForm = async () => {
         console.log(res)
 
         if (!res) {
-          ElMessage.error('注册失败，用户名或邮箱可能已存在')
+          ElMessage.error('注册失败，用户名或邮箱可能已存在,或者密码不一致')
           return
         }
 

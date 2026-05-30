@@ -38,7 +38,7 @@ const submitForm = async () => {
           if (data.userInfo.userType === 2) {
             router.push('/back')
           } else {
-            //
+            router.push('/')
           }
           return Promise.resolve('登录成功')
         }

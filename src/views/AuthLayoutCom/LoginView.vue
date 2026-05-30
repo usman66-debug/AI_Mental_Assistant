@@ -26,7 +26,6 @@ const submitForm = async () => {
     if (valid) {
       loginApi(formData.value).then((data) => {
         //如果后端未返回token，提示用户登录失败
-        console.log(data)
         if (!data.token) {
           ElMessage.error(data.msg || '登录失败，请检查用户名或密码')
           return Promise.reject('登录失败')

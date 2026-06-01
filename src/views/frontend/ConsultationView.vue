@@ -1,10 +1,93 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { startSession } from '@/apis/frontend'
 
 const logoIconUrl = new URL('@/assets/images/robot-fill.png', import.meta.url).href
 const loveIconUrl = new URL('@/assets/images/like.png', import.meta.url).href
+
+//新建临时会话（前端会话）
+const createNewFrontendSession = () => {
+  //创建一个新的会话对象
+  const newSession = {
+    sessionId: `temp_${Date.now()}`,
+    status: 'TEMP',
+    sessionTitle: '新对话',
+  }
+  //将当前会话对象设置为新创建的会话对象
+  currentSession.value = newSession
+  //将对话消息数组设置为空
+  message.value = []
+  //将用户输入框中输入的消息设置为空
+  userMessage.value = ''
+}
+//定义一个当前会话对象
+const currentSession = ref(null)
 //定义对话消息数组
 const message = ref([])
+//定义用户输入框中输入的消息
+const userMessage = ref('')
+//定义AI助手是否正在进行回复
+const isAiReplying = ref(false)
+//定义发送消息的键盘事件
+const handleKeyDown = (e) => {}
+
+//定义用户发送信息函数
+const sendMessage = () => {
+  //如果用户输入框中输入的消息为空，直接返回
+  if (!userMessage.value.trim()) {
+    return
+  }
+  if (isAiReplying.value) {
+    ElMessage.error('AI助手正在回复中，请稍后再试...')
+    return
+  }
+  const inputContent = userMessage.value.trim()
+  userMessage.value = ''
+  //如果当前会话是临时会话，则创建一个真实的保存到后端的会话对象
+  if (currentSession.value.status === 'TEMP') {
+    startNewSession(inputContent)
+  }
+}
+
+//创建真实的保存到后端的会话对象
+const startNewSession = (inputContent) => {
+  //定义传给后端的参数对象
+  const sessionParams = {
+    initialMessage: inputContent,
+  }
+  //如果当前对话为新对话，根据接口要求传递当前对话title
+  if (currentSession.value.sessionTitle === '新对话') {
+    sessionParams.sessionTitle = `AI情绪助手-${new Date().toLocaleString()}`
+  }
+  //如果不是新对话（是历史对话）,则更新历史对话的标题为当前标题
+  else {
+    sessionParams.sessionTitle = currentSession.value.sessionTitle
+  }
+  //调用后端接口创建创建一个真实的保存到后端的会话对象
+  startSession(sessionParams).then((res) => {
+    console.log(res)
+    //将后端返回的数据转为前端会话格式
+    const sessionData = {
+      sessionId: res.sessionId,
+      status: res.status,
+      sessionTitle: sessionParams.sessionTitle,
+    }
+    //如果当前是临时会话，更新数据
+    if (currentSession.value && currentSession.value.status === 'TEMP') {
+      //当前页面已有一个临时会话，将它原地升级为后端返回的正式会话
+      Object.assign(currentSession.value, sessionData)
+    } else {
+      // 兜底：如果当前没有临时会话，则直接把后端返回的数据作为当前会话（基本不会出现这种情况）
+      currentSession.value = sessionData
+    }
+  })
+}
+
+onMounted(() => {
+  //在组件挂载完成后，创建一个新的会话对象
+  createNewFrontendSession()
+})
 </script>
 
 <template>
@@ -36,6 +119,7 @@ const message = ref([])
           ><el-icon><Plus /></el-icon
         ></el-button>
       </div>
+      <!-- 对话消息 -->
       <div class="chat-messages">
         <div class="message-item ai-message" v-if="message.length === 0">
           <div class="message-avatar">
@@ -48,6 +132,24 @@ const message = ref([])
             <div class="message-time">刚刚</div>
           </div>
         </div>
+      </div>
+      <!-- 输入框 -->
+      <div class="chat-input">
+        <div class="input-container">
+          <el-input
+            v-model="userMessage"
+            placeholder="请输入您想要分享的内容..."
+            type="textarea"
+            :rows="3"
+            :disabled="isAiReplying"
+            @keydown="handleKeyDown"
+            class="message-input"
+            clearable
+          ></el-input>
+        </div>
+        <el-button type="primary" class="send-btn" @click="sendMessage">
+          <el-icon><Promotion /></el-icon>
+        </el-button>
       </div>
     </div>
   </div>

@@ -1,10 +1,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { startSession, getSessionList } from '@/apis/frontend'
+import { startSession, getSessionList, deleteSession, getSessionDetail } from '@/apis/frontend'
+import MarkdownRenderer from '@/views/frontend/MarkdownRenderer.vue'
 
 const logoIconUrl = new URL('@/assets/images/robot-fill.png', import.meta.url).href
 const loveIconUrl = new URL('@/assets/images/like.png', import.meta.url).href
+const usersIconUrl = new URL('@/assets/images/users.png', import.meta.url).href
 
 //新建临时会话（前端会话）
 const createNewFrontendSession = () => {
@@ -32,6 +34,10 @@ const userMessage = ref('')
 const isAiReplying = ref(false)
 //定义发送消息的键盘事件
 const handleKeyDown = (e) => {}
+//定义简单的换行逻辑，将用户输入的消息中的换行符替换为HTML的<br>标签
+const formatMessageContent = (content) => {
+  return content.replace(/\n/g, '<br>')
+}
 
 //定义用户发送信息函数
 const sendMessage = () => {
@@ -92,8 +98,17 @@ const getSessionPage = () => {
     sessionList.value = res.records
   })
 }
-const handleSessionClick = () => {}
-const handleDeleteSession = () => {}
+const handleSessionClick = (session) => {
+  getSessionDetail(session.id).then((res) => {
+    message.value = res
+  })
+}
+const handleDeleteSession = (sessionId) => {
+  deleteSession(sessionId).then(() => {
+    ElMessage.success('会话删除成功')
+    getSessionPage()
+  })
+}
 
 onMounted(() => {
   //在组件挂载完成后，获取会话列表
@@ -174,6 +189,7 @@ onMounted(() => {
       </div>
       <!-- 对话消息 -->
       <div class="chat-messages">
+        <!-- 默认消息 -->
         <div class="message-item ai-message" v-if="message.length === 0">
           <div class="message-avatar">
             <el-image :src="logoIconUrl" style="width: 18px; height: 18px" />
@@ -183,6 +199,54 @@ onMounted(() => {
               <p>You look lonely,I can fix that.</p>
             </div>
             <div class="message-time">刚刚</div>
+          </div>
+        </div>
+        <!-- 对话消息列表 -->
+        <div
+          v-for="msg in message"
+          :key="msg.id"
+          class="message-item"
+          :class="msg.senderType === 1 ? 'user-message' : 'ai-message'"
+        >
+          <div class="message-avatar">
+            <el-image
+              :src="msg.senderType === 1 ? usersIconUrl : logoIconUrl"
+              style="width: 18px; height: 18px"
+            />
+          </div>
+          <div class="message-content">
+            <div class="message-bubble">
+              <!--AI正在思考中 -->
+              <div
+                v-if="msg.senderType === 2 && isAiReplying && !msg.content"
+                class="typing-indicator"
+              >
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+              </div>
+              <!-- AI错误提示 -->
+              <div v-else-if="msg.isError" class="error-message">
+                {{ msg.content }}
+              </div>
+              <!-- AI正常返回消息 -->
+              <MarkdownRenderer
+                v-else-if="msg.senderType === 2 && !msg.isError"
+                :content="msg.content"
+                :is-ai-message="true"
+              />
+              <!-- 用户消息 -->
+              <p v-else-if="msg.content" v-html="formatMessageContent(msg.content)"></p>
+            </div>
+            <div class="message-time">
+              {{
+                msg.senderType === 2
+                  ? isAiReplying
+                    ? '正在输入中...'
+                    : msg.createdAt
+                  : msg.createdAt
+              }}
+            </div>
           </div>
         </div>
       </div>
@@ -199,8 +263,17 @@ onMounted(() => {
             class="message-input"
             clearable
           ></el-input>
+          <div class="input-footer">
+            <span>按enter发送，shift+enter换行</span>
+            <span>{{ userMessage.value.length }}/500</span>
+          </div>
         </div>
-        <el-button type="primary" class="send-btn" @click="sendMessage">
+        <el-button
+          :disabled="isAiReplying || !userMessage.trim() || userMessage.length > 500"
+          type="primary"
+          class="send-btn"
+          @click="sendMessage"
+        >
           <el-icon><Promotion /></el-icon>
         </el-button>
       </div>

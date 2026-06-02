@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { startSession } from '@/apis/frontend'
+import { startSession, getSessionList } from '@/apis/frontend'
 
 const logoIconUrl = new URL('@/assets/images/robot-fill.png', import.meta.url).href
 const loveIconUrl = new URL('@/assets/images/like.png', import.meta.url).href
@@ -23,6 +23,7 @@ const createNewFrontendSession = () => {
 }
 //定义一个当前会话对象
 const currentSession = ref(null)
+const sessionList = ref([])
 //定义对话消息数组
 const message = ref([])
 //定义用户输入框中输入的消息
@@ -81,10 +82,22 @@ const startNewSession = (inputContent) => {
       // 兜底：如果当前没有临时会话，则直接把后端返回的数据作为当前会话（基本不会出现这种情况）
       currentSession.value = sessionData
     }
+    //更新会话列表
+    getSessionPage()
   })
 }
 
+const getSessionPage = () => {
+  getSessionList({ pageNum: 1, pageSize: 10 }).then((res) => {
+    sessionList.value = res.records
+  })
+}
+const handleSessionClick = () => {}
+const handleDeleteSession = () => {}
+
 onMounted(() => {
+  //在组件挂载完成后，获取会话列表
+  getSessionPage()
   //在组件挂载完成后，创建一个新的会话对象
   createNewFrontendSession()
 })
@@ -93,6 +106,7 @@ onMounted(() => {
 <template>
   <div class="consultation-container">
     <div class="sidebar">
+      <!-- AI助手信息 -->
       <div class="ai-assistant-info">
         <div class="breathing-circle">
           <el-image :src="logoIconUrl" alt="AI助手" style="width: 25px; height: 25px" />
@@ -101,6 +115,45 @@ onMounted(() => {
         <div class="online-status">
           <div class="status-dot"></div>
           在线服务中
+        </div>
+      </div>
+      <!-- 会话列表 -->
+      <div class="session-history">
+        <h4 class="session-title">会话列表</h4>
+        <div class="session-list">
+          <div
+            v-for="session in sessionList"
+            :key="session.id"
+            @click="handleSessionClick(session)"
+            class="session-item"
+          >
+            <div class="session-info">
+              <div class="session-title">
+                <span>{{ session.sessionTitle }}</span>
+                <div class="session-meta">
+                  <span class="session-time">{{ session.startedAt }}</span>
+                </div>
+                <div class="session-preview">
+                  {{ session.lastMessageContent }}
+                </div>
+                <div class="session-stats">
+                  <span>
+                    <el-icon><ChatRound /></el-icon>
+                    {{ session.messageCount || 0 }}
+                  </span>
+                  <span>
+                    <el-icon><Clock /></el-icon>
+                    {{ session.durationMinutes || 0 }}分钟
+                  </span>
+                </div>
+              </div>
+              <div class="session-actions">
+                <el-button text type="danger" size="small" @click="handleDeleteSession(session.id)">
+                  <el-icon><DeleteFilled /></el-icon>
+                </el-button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

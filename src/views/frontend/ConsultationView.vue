@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { startSession, getSessionList, deleteSession, getSessionDetail } from '@/apis/frontend'
 import MarkdownRenderer from '@/views/frontend/MarkdownRenderer.vue'
+import { fetchEventSource } from '@microsoft/fetch-event-source'
 
 const logoIconUrl = new URL('@/assets/images/robot-fill.png', import.meta.url).href
 const loveIconUrl = new URL('@/assets/images/like.png', import.meta.url).href
@@ -55,6 +56,16 @@ const sendMessage = () => {
   if (currentSession.value.status === 'TEMP') {
     startNewSession(inputContent)
   }
+  //如果不是当前会话是临时会话，则直接开始流式对话
+  else {
+    message.value.push({
+      id: Date.now(),
+      senderType: 1,
+      content: inputContent,
+      createdAt: new Date().toISOString(),
+    })
+    startAIResponse(currentSession.value.sessionId, inputContent)
+  }
 }
 
 //创建真实的保存到后端的会话对象
@@ -90,9 +101,104 @@ const startNewSession = (inputContent) => {
     }
     //更新会话列表
     getSessionPage()
+    //将用户输入的消息添加到对话消息数组中
+    message.value.push({
+      id: Date.now(),
+      senderType: 1,
+      content: inputContent,
+      createdAt: new Date().toISOString(),
+    })
+    //开始流式对话
+    startAIResponse(currentSession.value.sessionId, inputContent)
   })
 }
 
+const startAIResponse = (sessionId, inputContent) => {
+  //防止重复发送消息
+  if (isAiReplying.value) {
+    ElMessage.error('AI助手正在回复中，请稍后再试...')
+    return
+  }
+  //将AI助手设置为正在回复状态
+  isAiReplying.value = true
+  // toString转换为36进制，因为36进制刚好用到0-9、a-z
+  const aiMessage = {
+    id: `ai_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+    senderType: 2,
+    content: '',
+    createdAt: new Date().toISOString(),
+  }
+  message.value.push(aiMessage)
+  //AI回复需要调用流式接口，通过npm安装fetch-event-source库来实现,使用方法和axios类似
+  const ctrl = new AbortController()
+  fetchEventSource(`/api/psychological-chat/stream`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Token: localStorage.getItem('token'),
+      Accept: 'text/event-stream',
+    },
+    body: JSON.stringify({
+      sessionId,
+      inputContent,
+    }),
+    signal: ctrl.signal,
+    //请求发出去后，后端有响应了，前端刚刚连上这个流式接口时，会先执行 onopen
+    onopen: (response) => {
+      console.log(response)
+      if (response.headers.get('Content-Type') !== 'text/event-stream') {
+        ElMessage.error('后端返回的不是流式数据')
+      }
+    },
+    onmessage: (event) => {
+      //拿到每一段流式数据
+      const row = event.data.trim()
+      if (!row) {
+        return
+      }
+      //定义当前会话窗口的AI消息框(对话的最后一个消息，因为AI肯定是回复者，总会在后面)
+      const aiMessage = message.value[message.value.length - 1]
+      const eventName = event.event
+      //如果事件名为done，说明后端回复完成，将AI助手设置为未回复状态
+      if (eventName === 'done') {
+        isAiReplying.value = false
+        ctrl.abort()
+        return
+      }
+      const payload = JSON.parse(row)
+      if (eventName === 'error') {
+        handleError(payload.msg || payload.message || 'AI回复失败，请稍后重试')
+        return
+      }
+      const ok = String(payload.code) === '200'
+      if (ok && payload.data?.content) {
+        aiMessage.content += payload.data.content
+      } else if (!ok) {
+        handleError(payload.msg || 'AI助手回复错误')
+      }
+    },
+    onError: (error) => {
+      handleError(error || 'AI助手回复错误')
+      throw error
+    },
+    onclose: () => {
+      //开始情绪分析
+    },
+  })
+}
+
+//回复错误时，提示用户
+const handleError = (error = 'AI助手回复错误') => {
+  //当前会话的AI消息
+  const aiMessage = message.value[message.value.length - 1]
+  if (aiMessage) {
+    aiMessage.content = error
+  }
+  isAiReplying.value = false
+  ElMessage.error(error)
+}
+
+//获取会话详情
 const getSessionPage = () => {
   getSessionList({ pageNum: 1, pageSize: 10 }).then((res) => {
     sessionList.value = res.records
@@ -102,6 +208,13 @@ const handleSessionClick = (session) => {
   getSessionDetail(session.id).then((res) => {
     message.value = res
   })
+  //更新当前会话数据
+  const sessionData = {
+    sessionId: 'session_' + session.id,
+    status: 'ACTIVE',
+    sessionTitle: session.sessionTitle,
+  }
+  currentSession.value = sessionData
 }
 const handleDeleteSession = (sessionId) => {
   deleteSession(sessionId).then(() => {
@@ -265,7 +378,7 @@ onMounted(() => {
           ></el-input>
           <div class="input-footer">
             <span>按enter发送，shift+enter换行</span>
-            <span>{{ userMessage.value.length }}/500</span>
+            <span>{{ userMessage.length }}/500</span>
           </div>
         </div>
         <el-button

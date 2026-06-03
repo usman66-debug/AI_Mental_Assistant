@@ -19,3 +19,7 @@ export const deleteSession = (sessionId) => {
 export const getSessionDetail = (sessionId) => {
   return request.get(`/psychological-chat/sessions/${sessionId}/messages`)
 }
+
+export const getEmotionRank = (sessionId) => {
+  return request.get(`/psychological-chat/session/${sessionId}/emotion`)
+}

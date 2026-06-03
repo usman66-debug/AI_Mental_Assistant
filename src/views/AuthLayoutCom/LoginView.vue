@@ -24,7 +24,7 @@ const submitForm = async () => {
   //validate方法会返回一个Promise，Promise的resolve方法会传递valid参数，valid表示当前表单校验状态
   await ruleFormRef.value.validate((valid) => {
     if (valid) {
-      loginApi(formData.value).then((data) => {
+      loginApi(formData.value).then((data = {}) => {
         //如果后端未返回token，提示用户登录失败
         if (!data.token) {
           ElMessage.error(data.msg || '登录失败，请检查用户名或密码')

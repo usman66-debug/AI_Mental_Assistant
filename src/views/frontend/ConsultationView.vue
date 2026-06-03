@@ -1,7 +1,13 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { startSession, getSessionList, deleteSession, getSessionDetail } from '@/apis/frontend'
+import {
+  startSession,
+  getSessionList,
+  deleteSession,
+  getSessionDetail,
+  getEmotionRank,
+} from '@/apis/frontend'
 import MarkdownRenderer from '@/views/frontend/MarkdownRenderer.vue'
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 
@@ -42,12 +48,21 @@ const formatMessageContent = (content) => {
 
 //情绪花园
 const currentEmotion = ref({
+  label: '中性',
   isNegative: false,
-  emotionScore: 0,
+  emotionScore: 50,
   primaryEmotion: '中性',
   riskLevel: 0,
   suggestion: '默认建议',
+  improvementSuggestions: [],
 })
+
+const loadingEmotionRank = (sessionId) => {
+  const id = sessionId.toString().startsWith('session_') ? sessionId : `session_${sessionId}`
+  getEmotionRank(id).then((res) => {
+    currentEmotion.value = res
+  })
+}
 
 const getIntensityClass = (score) => {
   if (score >= 61) {
@@ -196,8 +211,10 @@ const startAIResponse = (sessionId, inputContent) => {
       if (eventName === 'done') {
         isAiReplying.value = false
         ctrl.abort()
+        loadingEmotionRank(sessionId)
         return
       }
+
       const payload = JSON.parse(row)
       if (eventName === 'error') {
         handleError(payload.msg || payload.message || 'AI回复失败，请稍后重试')
@@ -216,6 +233,7 @@ const startAIResponse = (sessionId, inputContent) => {
     },
     onclose: () => {
       //开始情绪分析
+      loadingEmotionRank(sessionId)
     },
   })
 }
@@ -241,6 +259,7 @@ const handleSessionClick = (session) => {
   getSessionDetail(session.id).then((res) => {
     message.value = res
   })
+  loadingEmotionRank(session.id)
   //更新当前会话数据
   const sessionData = {
     sessionId: 'session_' + session.id,
@@ -284,8 +303,8 @@ onMounted(() => {
           <div class="garden-title">情绪花园</div>
         </div>
         <div class="emotion-info">
-          <div class="emotion-name">中性</div>
-          <div class="emotion-score">50</div>
+          <div class="emotion-name">{{ currentEmotion.label }}</div>
+          <div class="emotion-score">{{ currentEmotion.emotionScore }}</div>
         </div>
         <div class="warm-tips">
           <div class="emotion-status-text">
@@ -307,11 +326,34 @@ onMounted(() => {
               {{ getRiskText(currentEmotion.riskLevel) }}
             </span>
           </div>
+          <!-- 建议卡片 -->
           <div class="warm-suggestion" v-if="currentEmotion.suggestion">
             <div class="suggestion-icon">💝</div>
             <div class="suggestion-content">
               <div class="suggestion-title">给你的小建议</div>
               <div class="suggestion-text">{{ currentEmotion.suggestion }}</div>
+            </div>
+          </div>
+          <!-- 治愈小行动 -->
+          <div class="healing-actions" v-if="currentEmotion.improvementSuggestions?.length > 0">
+            <div class="action-title">治愈小行动</div>
+            <div class="action-list">
+              <div
+                v-for="action in currentEmotion.improvementSuggestions"
+                :key="action"
+                class="action-item"
+              >
+                <div class="action-icon">✨</div>
+                <div class="action-text">{{ action }}</div>
+              </div>
+            </div>
+          </div>
+          <!-- 大风险提示 -->
+          <div class="risk-notice" v-if="currentEmotion.isNegative && currentEmotion.riskLevel > 1">
+            <div class="notice-icon">🤗</div>
+            <div class="notice-content">
+              <div class="notice-title">温馨提示</div>
+              <div class="notice-text">{{ currentEmotion.riskDescription }}</div>
             </div>
           </div>
         </div>

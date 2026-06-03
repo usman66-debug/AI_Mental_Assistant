@@ -40,6 +40,39 @@ const formatMessageContent = (content) => {
   return content.replace(/\n/g, '<br>')
 }
 
+//情绪花园
+const currentEmotion = ref({
+  isNegative: false,
+  emotionScore: 0,
+  primaryEmotion: '中性',
+  riskLevel: 0,
+  suggestion: '默认建议',
+})
+
+const getIntensityClass = (score) => {
+  if (score >= 61) {
+    return 3
+  } else if (score >= 31) {
+    return 2
+  } else {
+    return 1
+  }
+}
+const getRiskText = (level) => {
+  switch (level) {
+    case 0:
+      return '正常'
+    case 1:
+      return '关注'
+    case 2:
+      return '预警'
+    case 3:
+      return '危机'
+    default:
+      return '未知状态'
+  }
+}
+
 //定义用户发送信息函数
 const sendMessage = () => {
   //如果用户输入框中输入的消息为空，直接返回
@@ -243,6 +276,44 @@ onMounted(() => {
         <div class="online-status">
           <div class="status-dot"></div>
           在线服务中
+        </div>
+      </div>
+      <!-- 情绪花园 -->
+      <div class="emotion-garden">
+        <div class="garden-header">
+          <div class="garden-title">情绪花园</div>
+        </div>
+        <div class="emotion-info">
+          <div class="emotion-name">中性</div>
+          <div class="emotion-score">50</div>
+        </div>
+        <div class="warm-tips">
+          <div class="emotion-status-text">
+            <span class="status-label">今天感觉</span>
+            <span class="status-emotion">{{
+              currentEmotion.isNegative ? '需要关注' : '很不错'
+            }}</span>
+          </div>
+          <div class="emotion-intensity">
+            <span class="intensity-dots">
+              <span
+                class="dot"
+                v-for="dot in 3"
+                :key="dot"
+                :class="{ active: getIntensityClass(currentEmotion.emotionScore) >= dot }"
+              ></span>
+            </span>
+            <span class="intensity-text">
+              {{ getRiskText(currentEmotion.riskLevel) }}
+            </span>
+          </div>
+          <div class="warm-suggestion" v-if="currentEmotion.suggestion">
+            <div class="suggestion-icon">💝</div>
+            <div class="suggestion-content">
+              <div class="suggestion-title">给你的小建议</div>
+              <div class="suggestion-text">{{ currentEmotion.suggestion }}</div>
+            </div>
+          </div>
         </div>
       </div>
       <!-- 会话列表 -->

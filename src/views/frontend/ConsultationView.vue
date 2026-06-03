@@ -135,12 +135,12 @@ const startAIResponse = (sessionId, inputContent) => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Token: localStorage.getItem('token'),
+      token: localStorage.getItem('token'),
       Accept: 'text/event-stream',
     },
     body: JSON.stringify({
       sessionId,
-      inputContent,
+      userMessage: inputContent,
     }),
     signal: ctrl.signal,
     //请求发出去后，后端有响应了，前端刚刚连上这个流式接口时，会先执行 onopen
@@ -177,7 +177,7 @@ const startAIResponse = (sessionId, inputContent) => {
         handleError(payload.msg || 'AI助手回复错误')
       }
     },
-    onError: (error) => {
+    onerror: (error) => {
       handleError(error || 'AI助手回复错误')
       throw error
     },

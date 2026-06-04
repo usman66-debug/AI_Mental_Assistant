@@ -3,8 +3,14 @@ import { onMounted, ref } from 'vue'
 import { getRecommendList } from '@/apis/frontend'
 import { imgUrlAt } from '@/config/index.js'
 import { dayjs } from 'element-plus'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const iconUrl = new URL('@/assets/images/book.png', import.meta.url).href
+//跳转逻辑
+const loadToDetail = (id) => {
+  router.push(`/knowledge/article/${id}`)
+}
 // 推荐列表
 const recommendList = ref([])
 //右侧内容
@@ -62,7 +68,12 @@ onMounted(() => {
       <div class="recommend-section">
         <div class="section-title">推荐阅读</div>
         <div class="recommend-list">
-          <div v-for="item in recommendList" :key="item.id" class="recommend-item">
+          <div
+            v-for="item in recommendList"
+            :key="item.id"
+            class="recommend-item"
+            @click="loadToDetail(item.id)"
+          >
             <h4>{{ item.title }}</h4>
             <p class="read-count">
               <el-icon><Histogram /></el-icon>
@@ -73,7 +84,12 @@ onMounted(() => {
       </div>
       <!-- 右侧内容 -->
       <div class="article-list">
-        <div v-for="item in articleList" :key="item.id" class="article-item">
+        <div
+          v-for="item in articleList"
+          :key="item.id"
+          class="article-item"
+          @click="loadToDetail(item.id)"
+        >
           <el-image
             style="width: 240px; height: 150px"
             :src="getImage(item.coverImage)"

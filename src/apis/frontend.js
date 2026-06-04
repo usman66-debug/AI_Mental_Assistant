@@ -31,3 +31,7 @@ export const submitEmotionDiary = (data) => {
 export const getRecommendList = (params) => {
   return request.get('/knowledge/article/page', { params })
 }
+
+export const getArticleDetail = (id) => {
+  return request.get(`/knowledge/article/${id}`)
+}

@@ -85,6 +85,10 @@ const frontendRoutes = [
         path: 'emotion-diary',
         component: () => import('@/views/frontend/EmotionDiary.vue'),
       },
+      {
+        path: 'knowledge/article/:id',
+        component: () => import('@/views/frontend/ArticleDetail.vue'),
+      },
     ],
   },
 ]

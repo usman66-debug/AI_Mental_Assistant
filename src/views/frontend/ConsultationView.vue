@@ -39,8 +39,24 @@ const message = ref([])
 const userMessage = ref('')
 //定义AI助手是否正在进行回复
 const isAiReplying = ref(false)
-//定义发送消息的键盘事件
-const handleKeyDown = (e) => {}
+// 定义发送消息的键盘事件
+const handleKeyDown = (e) => {
+  // 如果正在中文输入法组词，比如拼音还没选字，不处理(中文输入法组词期间 Enter → 不误触发送)
+  if (e.isComposing) {
+    return
+  }
+
+  // Shift + Enter：换行，不发送
+  if (e.key === 'Enter' && e.shiftKey) {
+    return
+  }
+
+  // Enter：发送消息，并阻止 textarea 默认换行
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    sendMessage()
+  }
+}
 //定义简单的换行逻辑，将用户输入的消息中的换行符替换为HTML的<br>标签
 const formatMessageContent = (content) => {
   return content.replace(/\n/g, '<br>')

@@ -27,3 +27,7 @@ export const getEmotionRank = (sessionId) => {
 export const submitEmotionDiary = (data) => {
   return request.post('/emotion-diary', data)
 }
+
+export const getRecommendList = (params) => {
+  return request.get('/knowledge/article/page', { params })
+}

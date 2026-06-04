@@ -23,3 +23,7 @@ export const getSessionDetail = (sessionId) => {
 export const getEmotionRank = (sessionId) => {
   return request.get(`/psychological-chat/session/${sessionId}/emotion`)
 }
+
+export const submitEmotionDiary = (data) => {
+  return request.post('/emotion-diary', data)
+}

@@ -50,7 +50,7 @@ const submitForm = async () => {
 <template>
   <div class="container">
     <div class="title">
-      <div class="back-home">
+      <div class="back-home" @click="router.push('/')">
         <el-icon><Back /></el-icon>
         <span>返回首页</span>
       </div>
@@ -92,6 +92,11 @@ const submitForm = async () => {
   .title {
     .back-home {
       margin-bottom: 60px;
+      cursor: pointer;
+      transition: color 0.2s;
+      &:hover {
+        color: rgb(74, 156, 140);
+      }
     }
     .title-text {
       text-align: center;

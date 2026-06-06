@@ -59,6 +59,10 @@ const submitForm = async () => {
 <template>
   <div class="container">
     <div class="title">
+      <div class="back-login" @click="router.push('/auth/login')">
+        <el-icon><Back /></el-icon>
+        <span>返回登录页</span>
+      </div>
       <div class="title-text">
         <h2>创建您的账户</h2>
         <p>请填写注册信息</p>
@@ -120,6 +124,14 @@ const submitForm = async () => {
     align-items: center;
   }
   .title {
+    .back-login {
+      margin-bottom: 60px;
+      cursor: pointer;
+      transition: color 0.2s;
+      &:hover {
+        color: rgb(74, 156, 140);
+      }
+    }
     .title-text {
       text-align: center;
       h2 {

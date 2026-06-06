@@ -416,9 +416,9 @@ onMounted(async () => {
 
 <template>
   <div class="dashboard-container">
-    <el-row v-if="aiData.systemOverview" :gutter="20">
-      <el-col :span="6">
-        <el-card>
+    <el-row v-if="aiData.systemOverview" :gutter="20" class="stats-row">
+      <el-col :xs="12" :sm="12" :md="8" :lg="6">
+        <el-card class="stats-card">
           <div class="card-content">
             <div class="avatar users">
               <img :src="iconUrl1" style="width: 40px; height: 40px" />
@@ -431,8 +431,8 @@ onMounted(async () => {
           </div>
         </el-card>
       </el-col>
-      <el-col :span="6">
-        <el-card>
+      <el-col :xs="12" :sm="12" :md="8" :lg="6">
+        <el-card class="stats-card">
           <div class="card-content">
             <div class="avatar like">
               <img :src="iconUrl2" style="width: 40px; height: 40px" />
@@ -445,8 +445,8 @@ onMounted(async () => {
           </div>
         </el-card>
       </el-col>
-      <el-col :span="6">
-        <el-card>
+      <el-col :xs="12" :sm="12" :md="8" :lg="6">
+        <el-card class="stats-card">
           <div class="card-content">
             <div class="avatar comments">
               <img :src="iconUrl3" style="width: 40px; height: 40px" />
@@ -459,8 +459,8 @@ onMounted(async () => {
           </div>
         </el-card>
       </el-col>
-      <el-col :span="6">
-        <el-card>
+      <el-col :xs="12" :sm="12" :md="8" :lg="6">
+        <el-card class="stats-card">
           <div class="card-content">
             <div class="avatar smile">
               <img :src="iconUrl4" style="width: 40px; height: 40px" />
@@ -525,6 +525,9 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .dashboard-container {
+  .stats-card {
+    transition: all 0.3s ease;
+  }
   .card-content {
     display: flex;
     align-items: center;
@@ -550,12 +553,13 @@ onMounted(async () => {
       }
     }
     .info {
+      flex: 1;
       .title {
         font-size: 14px;
         color: #7f8c8d;
         margin-bottom: 4px;
       }
-      .value {
+      .number {
         font-size: 24px;
         font-weight: 700;
         color: #2c3e50;
@@ -565,6 +569,54 @@ onMounted(async () => {
         font-size: 12px;
         color: #95a5a6;
       }
+    }
+  }
+  // 中等屏幕（一排3个）- 卡片略微缩小
+  @media screen and (max-width: 1200px) {
+    .stats-card {
+      padding: 12px !important;
+    }
+    .card-content .avatar {
+      width: 50px;
+      height: 50px;
+      margin-right: 10px;
+    }
+    .card-content .avatar img {
+      width: 32px !important;
+      height: 32px !important;
+    }
+  }
+  // 小屏幕（一排2个）- 卡片进一步缩小
+  @media screen and (max-width: 900px) {
+    .stats-card {
+      padding: 10px !important;
+    }
+    .card-content .avatar {
+      width: 45px;
+      height: 45px;
+      margin-right: 8px;
+    }
+    .card-content .avatar img {
+      width: 28px !important;
+      height: 28px !important;
+    }
+  }
+  // 超小屏幕 - 卡片最小化
+  @media screen and (max-width: 600px) {
+    .stats-card {
+      padding: 8px !important;
+    }
+    .card-content {
+      padding: 4px;
+    }
+    .card-content .avatar {
+      width: 40px;
+      height: 40px;
+      margin-right: 6px;
+    }
+    .card-content .avatar img {
+      width: 24px !important;
+      height: 24px !important;
     }
   }
   .chart-content {

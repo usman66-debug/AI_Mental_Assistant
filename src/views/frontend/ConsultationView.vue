@@ -29,6 +29,8 @@ const createNewFrontendSession = () => {
   message.value = []
   //将用户输入框中输入的消息设置为空
   userMessage.value = ''
+  //情绪花园回到默认状态
+  currentEmotion.value = { ...defaultEmotion }
 }
 //定义一个当前会话对象
 const currentSession = ref(null)
@@ -62,16 +64,27 @@ const formatMessageContent = (content) => {
   return content.replace(/\n/g, '<br>')
 }
 
-//情绪花园
-const currentEmotion = ref({
+//情绪花园默认状态
+const defaultEmotion = {
   label: '中性',
   isNegative: false,
   emotionScore: 50,
   primaryEmotion: '中性',
   riskLevel: 0,
-  suggestion: '默认建议',
+  suggestion: '',
   improvementSuggestions: [],
-})
+}
+
+//情绪花园
+const currentEmotion = ref({ ...defaultEmotion })
+
+//判断是否为默认状态
+const isDefaultEmotion = () => {
+  return (
+    currentEmotion.value.suggestion === '' &&
+    currentEmotion.value.improvementSuggestions?.length === 0
+  )
+}
 
 const loadingEmotionRank = (sessionId) => {
   const id = sessionId.toString().startsWith('session_') ? sessionId : `session_${sessionId}`
@@ -318,61 +331,74 @@ onMounted(() => {
         <div class="garden-header">
           <div class="garden-title">情绪花园</div>
         </div>
-        <div class="emotion-info">
-          <div class="emotion-name">{{ currentEmotion.label }}</div>
-          <div class="emotion-score">{{ currentEmotion.emotionScore }}</div>
+        <!-- 默认状态 -->
+        <div v-if="isDefaultEmotion()" class="default-garden">
+          <div class="welcome-card">
+            <div class="welcome-icon">🌱</div>
+            <div class="welcome-text">快来和你的AI心里助手聊一聊今天的心情吧！</div>
+          </div>
         </div>
-        <div class="warm-tips">
-          <div class="emotion-status-text">
-            <span class="status-label">今天感觉</span>
-            <span class="status-emotion">{{
-              currentEmotion.isNegative ? '需要关注' : '很不错'
-            }}</span>
+        <!-- 有数据状态 -->
+        <template v-else>
+          <div class="emotion-info">
+            <div class="emotion-name">{{ currentEmotion.label }}</div>
+            <div class="emotion-score">{{ currentEmotion.emotionScore }}</div>
           </div>
-          <div class="emotion-intensity">
-            <span class="intensity-dots">
-              <span
-                class="dot"
-                v-for="dot in 3"
-                :key="dot"
-                :class="{ active: getIntensityClass(currentEmotion.emotionScore) >= dot }"
-              ></span>
-            </span>
-            <span class="intensity-text">
-              {{ getRiskText(currentEmotion.riskLevel) }}
-            </span>
-          </div>
-          <!-- 建议卡片 -->
-          <div class="warm-suggestion" v-if="currentEmotion.suggestion">
-            <div class="suggestion-icon">💝</div>
-            <div class="suggestion-content">
-              <div class="suggestion-title">给你的小建议</div>
-              <div class="suggestion-text">{{ currentEmotion.suggestion }}</div>
+          <div class="warm-tips">
+            <div class="emotion-status-text">
+              <span class="status-label">当天感觉</span>
+              <span class="status-emotion">{{
+                currentEmotion.isNegative ? '需要关注' : '很不错'
+              }}</span>
             </div>
-          </div>
-          <!-- 治愈小行动 -->
-          <div class="healing-actions" v-if="currentEmotion.improvementSuggestions?.length > 0">
-            <div class="action-title">治愈小行动</div>
-            <div class="action-list">
-              <div
-                v-for="action in currentEmotion.improvementSuggestions"
-                :key="action"
-                class="action-item"
-              >
-                <div class="action-icon">✨</div>
-                <div class="action-text">{{ action }}</div>
+            <div class="emotion-intensity">
+              <span class="intensity-dots">
+                <span
+                  class="dot"
+                  v-for="dot in 3"
+                  :key="dot"
+                  :class="{ active: getIntensityClass(currentEmotion.emotionScore) >= dot }"
+                ></span>
+              </span>
+              <span class="intensity-text">
+                {{ getRiskText(currentEmotion.riskLevel) }}
+              </span>
+            </div>
+            <!-- 建议卡片 -->
+            <div class="warm-suggestion" v-if="currentEmotion.suggestion">
+              <div class="suggestion-icon">💝</div>
+              <div class="suggestion-content">
+                <div class="suggestion-title">给你的小建议</div>
+                <div class="suggestion-text">{{ currentEmotion.suggestion }}</div>
+              </div>
+            </div>
+            <!-- 治愈小行动 -->
+            <div class="healing-actions" v-if="currentEmotion.improvementSuggestions?.length > 0">
+              <div class="action-title">治愈小行动</div>
+              <div class="action-list">
+                <div
+                  v-for="action in currentEmotion.improvementSuggestions"
+                  :key="action"
+                  class="action-item"
+                >
+                  <div class="action-icon">✨</div>
+                  <div class="action-text">{{ action }}</div>
+                </div>
+              </div>
+            </div>
+            <!-- 大风险提示 -->
+            <div
+              class="risk-notice"
+              v-if="currentEmotion.isNegative && currentEmotion.riskLevel > 1"
+            >
+              <div class="notice-icon">🤗</div>
+              <div class="notice-content">
+                <div class="notice-title">温馨提示</div>
+                <div class="notice-text">{{ currentEmotion.riskDescription }}</div>
               </div>
             </div>
           </div>
-          <!-- 大风险提示 -->
-          <div class="risk-notice" v-if="currentEmotion.isNegative && currentEmotion.riskLevel > 1">
-            <div class="notice-icon">🤗</div>
-            <div class="notice-content">
-              <div class="notice-title">温馨提示</div>
-              <div class="notice-text">{{ currentEmotion.riskDescription }}</div>
-            </div>
-          </div>
-        </div>
+        </template>
       </div>
       <!-- 会话列表 -->
       <div class="session-history">
@@ -711,6 +737,34 @@ onMounted(() => {
           font-size: 16px;
           font-weight: 600;
           color: #8b4513;
+        }
+      }
+      .default-garden {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 250px;
+        .welcome-card {
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+          border-radius: 20px;
+          padding: 32px 24px;
+          text-align: center;
+          box-shadow:
+            0 8px 24px rgba(0, 0, 0, 0.06),
+            0 2px 8px rgba(0, 0, 0, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.6);
+          max-width: 260px;
+          .welcome-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            animation: float 3s ease-in-out infinite;
+          }
+          .welcome-text {
+            font-size: 15px;
+            color: #6b5b47;
+            line-height: 1.6;
+            font-weight: 500;
+          }
         }
       }
       .emotion-info {
@@ -1075,6 +1129,16 @@ onMounted(() => {
         transition: all 0.3s ease;
       }
     }
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
   }
 }
 </style>

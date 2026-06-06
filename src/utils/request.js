@@ -45,11 +45,13 @@ service.interceptors.response.use(
         //如果是非公开接口，才执行跳转登录页逻辑
         if (!isPublicUrl(config.url)) {
           ElMessage.error(data.msg || '登录状态超时，请重新登录')
-          //清除用户登录信息
+          //清除用户登录信息（确保同步执行完成）
           localStorage.removeItem('token')
           localStorage.removeItem('userInfo')
-          //清除用户登录信息后，跳转到登录页
-          window.location.href = '/auth/login'
+          //使用 setTimeout 确保 localStorage 操作完成后再跳转
+          setTimeout(() => {
+            window.location.href = '/auth/login'
+          }, 0)
         }
         return Promise.reject(data)
       } else {

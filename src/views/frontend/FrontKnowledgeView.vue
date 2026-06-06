@@ -7,6 +7,7 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const iconUrl = new URL('@/assets/images/book.png', import.meta.url).href
+const defaultCover = new URL('@/assets/images/dog.png', import.meta.url).href
 //跳转逻辑
 const loadToDetail = (id) => {
   router.push(`/knowledge/article/${id}`)
@@ -32,7 +33,7 @@ const getPageList = () => {
   })
 }
 const getImage = (url) => {
-  return url ? imgUrlAt + url : 'https://file.itndedu.com/psychology_ai.png'
+  return url ? imgUrlAt + url : defaultCover
 }
 const handleChange = (val) => {
   pagination.value.currentPage = val

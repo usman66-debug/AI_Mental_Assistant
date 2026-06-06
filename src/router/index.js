@@ -99,7 +99,7 @@ const router = createRouter({
 })
 
 //配置路由前置守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach((to) => {
   const token = localStorage.getItem('token')
   //判断当前用户是否登录
   if (token) {
@@ -109,17 +109,17 @@ router.beforeEach((to, from, next) => {
       //后台用户，直接放行
       if (to.path.startsWith('/back')) {
         //放行到相应页面
-        next()
+        return true
       } else {
         //要是输入其他不合规的路径，重定向到后台首页
-        next('/back/dashboard')
+        return '/back/dashboard'
       }
     } else if (userInfo.userType === 1) {
       //用户端账号，只能访问前台路由，并且登录后的用户端账号不能再次访问登录页和注册页
       if (to.path.startsWith('/back') || to.path.startsWith('/auth')) {
-        next('/')
+        return '/'
       } else {
-        next()
+        return true
       }
     }
   } else {
@@ -127,10 +127,10 @@ router.beforeEach((to, from, next) => {
     //如果是后台页面，提示用户先登录
     if (to.path.startsWith('/back')) {
       ElMessage.error('请先登录')
-      next('/auth/login')
+      return '/auth/login'
     } else {
       //前台用户，直接放行
-      next()
+      return true
     }
   }
 })

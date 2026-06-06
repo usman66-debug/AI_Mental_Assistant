@@ -56,6 +56,11 @@ const handleKeyDown = (e) => {
   // Enter：发送消息，并阻止 textarea 默认换行
   if (e.key === 'Enter') {
     e.preventDefault()
+    // 检查字数限制
+    if (userMessage.value.length > 500) {
+      ElMessage.warning('输入内容不能超过500字')
+      return
+    }
     sendMessage()
   }
 }

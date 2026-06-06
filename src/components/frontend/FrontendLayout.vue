@@ -12,7 +12,7 @@ const handleLogout = () => {
   logoutApi()
     .then(() => {
       localStorage.removeItem('token')
-      localStorage.removeItem('userInfo')
+      localStorage.removeItem('userinfo')
       isLogin.value = false
       router.push('/auth/login')
     })

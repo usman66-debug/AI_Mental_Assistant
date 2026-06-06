@@ -50,7 +50,9 @@ const submitForm = async () => {
       })
       .catch((err) => {
         console.log(err)
-        ElMessage.error('注册失败，请稍后重试')
+        //优先使用后端返回的错误信息
+        const errorMsg = err.msg || err.message || '注册失败，请稍后重试'
+        ElMessage.error(errorMsg)
       })
   })
 }

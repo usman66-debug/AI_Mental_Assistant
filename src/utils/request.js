@@ -7,12 +7,21 @@ const service = axios.create({
   timeout: 5000,
 })
 
+//公开接口白名单 - 这些接口不需要携带token，也不会因为code=-1而跳转登录页
+const publicUrls = ['/user/login', '/user/add']
+
+//判断当前请求是否为公开接口
+const isPublicUrl = (url) => {
+  return publicUrls.some((publicUrl) => url?.includes(publicUrl))
+}
+
 //请求拦截器
 service.interceptors.request.use(
   (config) => {
     //在请求发送之前做的事
     const token = localStorage.getItem('token')
-    if (token) {
+    //只有非公开接口才添加token
+    if (token && !isPublicUrl(config.url)) {
       //请求头中添加token
       config.headers['token'] = token
     }
@@ -33,20 +42,21 @@ service.interceptors.response.use(
     } else {
       //后端业务状态码为-1，用户登录状态超时
       if (data.code === '-1') {
-        //如果用户没有在登录页，跳转到登陆页
-        if (!config.url?.includes('/login')) {
-          ElMessage.error(data.msg || '登录登录状态超时，请重新登录')
+        //如果是非公开接口，才执行跳转登录页逻辑
+        if (!isPublicUrl(config.url)) {
+          ElMessage.error(data.msg || '登录状态超时，请重新登录')
           //清除用户登录信息
           localStorage.removeItem('token')
           localStorage.removeItem('userInfo')
           //清除用户登录信息后，跳转到登录页
           window.location.href = '/auth/login'
         }
-        //非-1的情况，接口异常，提示用户
-        else {
-          ElMessage.error(data.msg || '接口异常，请联系管理员')
-          return Promise.reject('网络请求失败')
-        }
+        return Promise.reject(data)
+      } else {
+        //非200、非-1的业务错误（如 BUSINESS_ERROR），提示后端返回的错误信息并reject
+        const errorMsg = data.msg || data.message || '接口异常，请联系管理员'
+        ElMessage.error(errorMsg)
+        return Promise.reject(data)
       }
     }
   },

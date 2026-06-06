@@ -18,9 +18,29 @@ const formData = ref({
 })
 
 const rules = ref({
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { max: 8, message: '用户名长度不能超过8位', trigger: 'blur' },
+  ],
+  email: [
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
+    {
+      pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+      message: '请输入正确的邮箱格式',
+      trigger: 'blur',
+    },
+  ],
+  nickname: [{ max: 8, message: '昵称长度不能超过8位', trigger: 'blur' }],
+  phone: [{ pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号格式', trigger: 'blur' }],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, max: 16, message: '密码长度在6-16位之间', trigger: 'blur' },
+    {
+      pattern: /^(?=.*[a-z])(?=.*\d)[a-z0-9]{6,16}$/,
+      message: '密码至少包含小写字母和数字',
+      trigger: 'blur',
+    },
+  ],
   confirmPassword: [{ required: true, message: '请确认密码', trigger: 'blur' }],
 })
 
@@ -72,7 +92,7 @@ const submitForm = async () => {
     </div>
     <div class="form-container">
       <el-form label-position="top" :model="formData" :rules="rules" ref="submitFormRef">
-        <el-form-item label="用户名或邮箱" prop="username">
+        <el-form-item label="用户名" prop="username">
           <el-input v-model="formData.username" placeholder="请输入用户名" size="large"></el-input>
         </el-form-item>
         <el-form-item label="邮箱" prop="email">

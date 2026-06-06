@@ -23,7 +23,7 @@ const formItem = ref([
   },
   {
     label: '分类菜单',
-    prop: 'category',
+    prop: 'categoryId',
     type: 'select',
     placeholder: '请选择分类菜单',
   },
@@ -58,20 +58,41 @@ const pagination = ref({
   total: 0,
 })
 const tableData = ref([])
-const handleSearch = async (data) => {
-  const queryData = {
-    ...data,
-    ...pagination.value,
+const searchForm = ref({})
+
+const cleanParams = (params) => {
+  const result = { ...params }
+  Object.keys(result).forEach((key) => {
+    if (result[key] === '' || result[key] === null || result[key] === undefined) {
+      delete result[key]
+    }
+  })
+  return result
+}
+
+const handleSearch = async (data = searchForm.value, resetPage = true) => {
+  if (resetPage) {
+    pagination.value.currentPage = 1
   }
-  const { records, total } = await articlePageApi(queryData)
+
+  searchForm.value = { ...data }
+
+  const queryData = {
+    currentPage: pagination.value.currentPage,
+    size: pagination.value.size,
+    ...searchForm.value,
+  }
+
+  const finalParams = cleanParams(queryData)
+
+  const { records, total } = await articlePageApi(finalParams)
   tableData.value = records
-  //在编写过程中有时候会出现后端返回字段不包含records的情况，排查后发现重新登录就正常了，有可能是token过期了
   pagination.value.total = total
 }
-//当分页组件的currentPage属性改变时，调用handleChange函数（val为当前页码）
+
 const handleChange = (val) => {
   pagination.value.currentPage = val
-  handleSearch()
+  handleSearch(searchForm.value, false)
 }
 onMounted(async () => {
   const data = await categoryTreeApi()
@@ -84,11 +105,11 @@ onMounted(async () => {
     }
   })
   formItem.value[1].options = categoryOptions.value
-  handleSearch()
+  handleSearch({}, true)
 })
 const handleSuccess = () => {
   dialogVisible.value = false
-  handleSearch()
+  handleSearch(searchForm.value, true)
 }
 //编辑文章
 const currentArtical = ref(null)
@@ -117,7 +138,7 @@ const handlePublish = (row) => {
     .then(() => {
       publishArticleApi(row.id, { status: 1 }).then(() => {
         ElMessage.success('发布成功')
-        handleSearch()
+        handleSearch(searchForm.value, true)
       })
     })
     .catch(() => {
@@ -133,7 +154,7 @@ const handleOffline = (row) => {
     .then(() => {
       publishArticleApi(row.id, { status: 2 }).then(() => {
         ElMessage.success('下线成功')
-        handleSearch()
+        handleSearch(searchForm.value, true)
       })
     })
     .catch(() => {
@@ -149,7 +170,7 @@ const handleDelete = (row) => {
     .then(() => {
       deleteArticleApi(row.id).then(() => {
         ElMessage.success('删除成功')
-        handleSearch()
+        handleSearch(searchForm.value, true)
       })
     })
     .catch(() => {

@@ -64,7 +64,12 @@ const getRiskLevelText = (riskLevel) => {
 }
 
 const formItem = ref([
-  { type: 'input', label: '用户ID', prop: 'userId', placeholder: '请输入用户ID' },
+  {
+    type: 'input',
+    label: '用户ID',
+    prop: 'userId',
+    placeholder: '请输入用户ID',
+  },
   {
     type: 'select',
     label: '情绪评分',
@@ -83,18 +88,49 @@ const pagination = ref({
   size: 10,
   current: 1,
 })
-const handleChange = (val) => {
-  pagination.value.currentPage = val
-  handleSearch()
-}
 const tableData = ref([])
-const handleSearch = async (formData) => {
-  const { records, total } = await getEmotionalPageApi({
-    ...pagination.value,
-    ...formData,
+const searchForm = ref({})
+
+const cleanParams = (params) => {
+  const result = { ...params }
+  Object.keys(result).forEach((key) => {
+    if (result[key] === '' || result[key] === null || result[key] === undefined) {
+      delete result[key]
+    }
   })
+  return result
+}
+
+const handleSearch = async (data = searchForm.value, resetPage = true) => {
+  if (resetPage) {
+    pagination.value.current = 1
+  }
+
+  searchForm.value = { ...data }
+
+  const queryData = {
+    current: pagination.value.current,
+    size: pagination.value.size,
+    userId: searchForm.value.userId,
+  }
+
+  if (searchForm.value.moodScoreRange) {
+    const [minMoodScore, maxMoodScore] = searchForm.value.moodScoreRange.split('-')
+    queryData.minMoodScore = Number(minMoodScore)
+    queryData.maxMoodScore = Number(maxMoodScore)
+  }
+
+  const finalParams = cleanParams(queryData)
+
+  const { records, total } = await getEmotionalPageApi(finalParams)
+
   tableData.value = records
   pagination.value.total = total
+}
+
+const handleChange = (val) => {
+  pagination.value.current = val
+  handleSearch(searchForm.value, false)
 }
 
 //弹窗
@@ -121,7 +157,7 @@ const handleDelete = async (row) => {
   })
     .then(async () => {
       await deleteEmotionalDiaryApi(row.id)
-      handleSearch({})
+      handleSearch(searchForm.value, false)
     })
     .catch(() => {
       // 取消删除
@@ -137,7 +173,7 @@ onMounted(() => {
     <PageHead title="情绪日志" />
     <TableSearch :formItem="formItem" @search="handleSearch" />
     <el-table :data="tableData" style="width: 100%">
-      <el-table-column prop="id" label="用户ID" width="80" />
+      <el-table-column prop="userId" label="用户ID" width="80" />
       <el-table-column label="会话ID" width="80">
         <template #default="scope">
           <el-avatar>{{ scope.row.nickname }}</el-avatar>

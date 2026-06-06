@@ -22,15 +22,14 @@ const formItemPlus = computed(() => {
 //子组件定义可触发的事件，父组件监听该事件，收到子组件传过来的数据后，调用父组件的函数
 const emit = defineEmits(['search', 'reset'])
 const handleSearch = () => {
-  //触发查询事件
-  emit('search', formData.value)
+  emit('search', { ...formData.value })
 }
 const handleReset = () => {
   if (!ruleFormRef.value) {
     return
   }
   ruleFormRef.value.resetFields()
-  emit('search', formData.value)
+  emit('search', { ...formData.value })
 }
 
 //表单数据
@@ -58,7 +57,7 @@ const isComponent = (type) => {
               :placeholder="item.placeholder"
             >
               <template v-if="item.type === 'select'">
-                <el-option label="全部" value="0"></el-option>
+                <el-option label="全部" :value="''"></el-option>
                 <el-option
                   v-for="opt in item.options"
                   :key="opt.value"

@@ -25,15 +25,18 @@ const props = defineProps({
 })
 //双感叹号表示转换为布尔值
 const isEdit = computed(() => !!props.artical?.id)
-const formData = ref({
+const getDefaultFormData = () => ({
   title: '',
   content: '',
   coverImage: '',
   categoryId: 1,
   summary: '',
   tags: '',
+  tagArray: [],
   id: '',
 })
+
+const formData = ref(getDefaultFormData())
 const commonTags = ref([
   '情绪管理',
   '焦虑',
@@ -95,13 +98,21 @@ const dialogVisible = computed({
   },
 })
 
-// 预留的关闭处理函数，可用于在弹窗关闭前做一些处理（如表单验证）
-// 使用方式：在el-dialog上添加 @close="handleClose"
-const handleClose = () => {
-  formRef.value.resetFields()
+const editorKey = ref(0)
+
+const resetFormData = () => {
+  formData.value = getDefaultFormData()
+  imgUrl.value = ''
   businessId.value = null
-  formData.value.tagArray = []
+}
+
+const handleClose = () => {
+  formRef.value?.resetFields()
+  editorInstance.value = null
+  businessId.value = null
+  btnPreview.value = false
   clearImage()
+  resetFormData()
   emit('update:visible', false)
 }
 // 选择图片后会传入一个file属性
@@ -138,30 +149,31 @@ const btnPreview = ref(false)
 const handleContentChange = (data) => {
   formData.value.content = data.html
 }
-//在 RichTextEditor.vue 中，当编辑器初始化完成后，会触发 @onCreated 事件
-//把编辑器实例保存到响应式变量中，方便当前组件其他方法随时使用它，如果不保存 editorInstance，那么 editor 只在这个函数里临时存在，函数执行完以后，其他地方就拿不到这个编辑器对象了
 const editorInstance = ref(null)
 const handleEditorCreated = (editor) => {
   editorInstance.value = editor
-  //如果是编辑
-  if (formData.value.content && editor) {
-    nextTick(() => {
-      editor.setHtml(formData.value.content)
-    })
-  }
 }
-// 监听artical属性变化，当artical变化时，将artical赋值给formData
+
 watch(
-  () => props.artical,
-  (newVal) => {
-    if (newVal) {
-      //因为artical是异步赋值的，所以这里要使用nextTick()方法，确保artical赋值完成后再执行赋值操作
-      nextTick(() => {
-        //formData不能直接赋值，否则会导致响应式系统失效，需要使用Object.assign()方法
-        Object.assign(formData.value, newVal)
-        businessId.value = newVal.id
-        imgUrl.value = imgUrlAt + newVal.coverImage
-      })
+  () => props.visible,
+  async (visible) => {
+    if (!visible) return
+
+    editorKey.value++
+
+    await nextTick()
+
+    if (props.artical) {
+      formData.value = {
+        ...getDefaultFormData(),
+        ...props.artical,
+        tagArray: props.artical.tags ? props.artical.tags.split(',') : [],
+      }
+
+      businessId.value = props.artical.id || null
+      imgUrl.value = props.artical.coverImage ? imgUrlAt + props.artical.coverImage : ''
+    } else {
+      resetFormData()
     }
   },
 )
@@ -169,30 +181,35 @@ watch(
 const formRef = ref(null)
 const loading = ref(false)
 const handleSubmit = async () => {
-  await formRef.value.validate((valid) => {
-    if (valid) {
-      loading.value = true
+  if (!formRef.value) return
+
+  await formRef.value.validate(async (valid) => {
+    if (!valid) {
+      return
     }
-    console.log(formData.value, '666')
-    //因为表单存的是数组形式的tags，但是后端接口要求上传的tags是字符串形式，所以这里要将数组转换为字符串
-    const submitData = {
-      ...formData.value,
-      tags: formData.value.tagArray.join(','),
-    }
-    delete submitData.tagArray
-    if (!isEdit.value) {
-      submitData.id = businessId.value
-      createArticleApi(submitData).then(() => {
-        loading.value = false
+
+    loading.value = true
+
+    try {
+      const submitData = {
+        ...formData.value,
+        tags: formData.value.tagArray.join(','),
+      }
+
+      delete submitData.tagArray
+
+      if (!isEdit.value) {
+        submitData.id = businessId.value
+        await createArticleApi(submitData)
         ElMessage.success('发表文章成功')
-        emit('success')
-      })
-    } else {
-      updateArticleApi(props.artical.id, submitData).then(() => {
-        loading.value = false
+      } else {
+        await updateArticleApi(props.artical.id, submitData)
         ElMessage.success('更新文章成功')
-        emit('success')
-      })
+      }
+
+      emit('success')
+    } finally {
+      loading.value = false
     }
   })
 }
@@ -271,6 +288,7 @@ const handleSubmit = async () => {
       </el-form-item>
       <el-form-item label="文章内容" prop="content">
         <RichTextEditor
+          :key="editorKey"
           v-model="formData.content"
           placeholder="请输入文章内容，支持富文本格式\n\n可以使用加粗、斜体、列表、标题等格式来丰富文章内容"
           :maxCharCount="5000"

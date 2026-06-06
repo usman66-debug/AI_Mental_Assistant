@@ -2,10 +2,10 @@
   <div class="rich-text-editor">
     <!-- 富文本编辑器 -->
     <div class="editor-container">
-      <WangToolbar 
-        :editor="editorRef" 
-        :defaultConfig="toolbarConfig" 
-        mode="default" 
+      <WangToolbar
+        :editor="editorRef"
+        :defaultConfig="toolbarConfig"
+        mode="default"
         class="editor-toolbar"
       />
       <WangEditor
@@ -24,8 +24,8 @@
       <div class="word-count">
         <span class="count-text">{{ currentCharCount }} / {{ maxCharCount }}</span>
         <div class="progress-bar">
-          <div 
-            class="progress-fill" 
+          <div
+            class="progress-fill"
             :style="{ width: Math.min((currentCharCount / maxCharCount) * 100, 100) + '%' }"
           ></div>
         </div>
@@ -44,39 +44,54 @@ import { Editor as WangEditor, Toolbar as WangToolbar } from '@wangeditor/editor
 const props = defineProps({
   modelValue: {
     type: String,
-    default: ''
+    default: '',
   },
   placeholder: {
     type: String,
-    default: '请输入内容...'
+    default: '请输入内容...',
   },
   maxCharCount: {
     type: Number,
-    default: 2000
+    default: 2000,
   },
   showWordCount: {
     type: Boolean,
-    default: true
+    default: true,
   },
   showSecurityTip: {
     type: Boolean,
-    default: true
+    default: true,
   },
   toolbarKeys: {
     type: Array,
     default: () => [
-      'bold', 'italic', 'underline', 'color', 'bgColor', '|',
-      'fontSize', 'fontFamily', '|',
-      'header1', 'header2', 'header3', '|',
-      'bulletedList', 'numberedList', 'blockquote', '|',
-      'insertLink', '|',
-      'undo', 'redo'
-    ]
+      'bold',
+      'italic',
+      'underline',
+      'color',
+      'bgColor',
+      '|',
+      'fontSize',
+      'fontFamily',
+      '|',
+      'header1',
+      'header2',
+      'header3',
+      '|',
+      'bulletedList',
+      'numberedList',
+      'blockquote',
+      '|',
+      'insertLink',
+      '|',
+      'undo',
+      'redo',
+    ],
   },
   minHeight: {
     type: String,
-    default: '300px'
-  }
+    default: '300px',
+  },
 })
 
 // Emits
@@ -89,7 +104,7 @@ const currentCharCount = ref(0)
 // 计算属性
 const content = computed({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
+  set: (value) => emit('update:modelValue', value),
 })
 
 // 编辑器配置
@@ -98,9 +113,23 @@ const editorConfig = reactive({
   MENU_CONF: {
     fontSize: {
       fontSizeList: [
-        '12px', '13px', '14px', '15px', '16px', '17px', '18px', 
-        '19px', '20px', '22px', '24px', '26px', '28px', '30px', '32px', '36px'
-      ]
+        '12px',
+        '13px',
+        '14px',
+        '15px',
+        '16px',
+        '17px',
+        '18px',
+        '19px',
+        '20px',
+        '22px',
+        '24px',
+        '26px',
+        '28px',
+        '30px',
+        '32px',
+        '36px',
+      ],
     },
     fontFamily: {
       fontFamilyList: [
@@ -116,99 +145,162 @@ const editorConfig = reactive({
         '"SimHei"',
         '"黑体"',
         '"KaiTi"',
-        '"楷体"'
-      ]
+        '"楷体"',
+      ],
     },
     color: {
       colors: [
         // 基础颜色
-        '#000000', '#333333', '#666666', '#999999', '#CCCCCC',
+        '#000000',
+        '#333333',
+        '#666666',
+        '#999999',
+        '#CCCCCC',
         // 治愈系主题色
-        '#4A90E2', '#7ED321', '#F5A623', '#9013FE',
+        '#4A90E2',
+        '#7ED321',
+        '#F5A623',
+        '#9013FE',
         // 红色系
-        '#FF6B6B', '#FF4757', '#FF3838', '#FF2D2D', '#DC3545',
+        '#FF6B6B',
+        '#FF4757',
+        '#FF3838',
+        '#FF2D2D',
+        '#DC3545',
         // 橙色系
-        '#FFA502', '#FF6348', '#FF7675', '#FDCB6E', '#F39C12',
+        '#FFA502',
+        '#FF6348',
+        '#FF7675',
+        '#FDCB6E',
+        '#F39C12',
         // 黄色系
-        '#FFC312', '#F1C40F', '#F39801', '#FFD93D', '#FFDD59',
+        '#FFC312',
+        '#F1C40F',
+        '#F39801',
+        '#FFD93D',
+        '#FFDD59',
         // 绿色系
-        '#2ED573', '#1DD1A1', '#10AC84', '#00B894', '#00A085',
+        '#2ED573',
+        '#1DD1A1',
+        '#10AC84',
+        '#00B894',
+        '#00A085',
         // 蓝色系
-        '#3742FA', '#2F3542', '#40739E', '#487EB0', '#0984E3',
+        '#3742FA',
+        '#2F3542',
+        '#40739E',
+        '#487EB0',
+        '#0984E3',
         // 紫色系
-        '#8E44AD', '#9B59B6', '#A55EEA', '#3D5AFE', '#667AFA',
+        '#8E44AD',
+        '#9B59B6',
+        '#A55EEA',
+        '#3D5AFE',
+        '#667AFA',
         // 粉色系
-        '#FD79A8', '#E84393', '#FF7675', '#FF6B9D', '#FF5722'
-      ]
+        '#FD79A8',
+        '#E84393',
+        '#FF7675',
+        '#FF6B9D',
+        '#FF5722',
+      ],
     },
     bgColor: {
       colors: [
         // 基础背景色
-        '#FFFFFF', '#F8F9FA', '#E9ECEF', '#DEE2E6', '#CED4DA',
+        '#FFFFFF',
+        '#F8F9FA',
+        '#E9ECEF',
+        '#DEE2E6',
+        '#CED4DA',
         // 浅色治愈系
-        '#E3F2FD', '#E8F5E8', '#FFF3E0', '#F3E5F5',
+        '#E3F2FD',
+        '#E8F5E8',
+        '#FFF3E0',
+        '#F3E5F5',
         // 浅红色系
-        '#FFEBEE', '#FCE4EC', '#F8BBD9', '#F48FB1',
+        '#FFEBEE',
+        '#FCE4EC',
+        '#F8BBD9',
+        '#F48FB1',
         // 浅橙色系
-        '#FFF3E0', '#FFE0B2', '#FFCC80', '#FFB74D',
+        '#FFF3E0',
+        '#FFE0B2',
+        '#FFCC80',
+        '#FFB74D',
         // 浅黄色系
-        '#FFFDE7', '#FFF9C4', '#FFF176', '#FFEB3B',
+        '#FFFDE7',
+        '#FFF9C4',
+        '#FFF176',
+        '#FFEB3B',
         // 浅绿色系
-        '#E8F5E8', '#C8E6C9', '#A5D6A7', '#81C784',
+        '#E8F5E8',
+        '#C8E6C9',
+        '#A5D6A7',
+        '#81C784',
         // 浅蓝色系
-        '#E3F2FD', '#BBDEFB', '#90CAF9', '#64B5F6',
+        '#E3F2FD',
+        '#BBDEFB',
+        '#90CAF9',
+        '#64B5F6',
         // 浅紫色系
-        '#F3E5F5', '#E1BEE7', '#CE93D8', '#BA68C8',
+        '#F3E5F5',
+        '#E1BEE7',
+        '#CE93D8',
+        '#BA68C8',
         // 浅灰色系
-        '#FAFAFA', '#F5F5F5', '#EEEEEE', '#E0E0E0'
-      ]
+        '#FAFAFA',
+        '#F5F5F5',
+        '#EEEEEE',
+        '#E0E0E0',
+      ],
     },
     // 添加更多功能配置
     lineHeight: {
-      lineHeightList: ['1', '1.15', '1.2', '1.5', '1.75', '2', '2.5', '3']
-    }
-  }
+      lineHeightList: ['1', '1.15', '1.2', '1.5', '1.75', '2', '2.5', '3'],
+    },
+  },
 })
 
 // 工具栏配置
 const toolbarConfig = reactive({
-  toolbarKeys: props.toolbarKeys
+  toolbarKeys: props.toolbarKeys,
 })
 
 // 方法
 const handleEditorCreated = (editor) => {
   editorRef.value = editor
-  
+
   // 初始化字数统计
   updateCharCount()
-  
+
   // 调试信息 - 检查字体配置
   console.log('编辑器实例:', editor)
   console.log('工具栏配置:', editor.getConfig())
-  
+
   // 检查字体菜单
   const menus = editor.getAllMenuKeys()
   console.log('所有可用菜单:', menus)
-  
+
   if (menus.includes('fontFamily')) {
     console.log('字体菜单已启用')
   } else {
     console.warn('字体菜单未启用')
   }
-  
+
   // 触发创建事件
   emit('created', editor)
-  
+
   console.log('富文本编辑器已创建')
 }
 
 const handleEditorChange = (editor) => {
   updateCharCount()
-  
+
   // 触发变更事件
   emit('change', {
     html: editor.getHtml(),
-    text: editor.getText()
+    text: editor.getText(),
   })
 }
 
@@ -219,11 +311,11 @@ const handleEditorDestroyed = () => {
 
 const updateCharCount = () => {
   if (!editorRef.value) return
-  
+
   const text = editorRef.value.getText()
   const cleanText = text.replace(/\s+/g, ' ').trim()
   currentCharCount.value = cleanText === '' ? 0 : cleanText.length
-  
+
   // 检查字数限制
   if (currentCharCount.value > props.maxCharCount) {
     ElMessage.warning(`内容长度不能超过 ${props.maxCharCount} 字符`)
@@ -271,18 +363,23 @@ defineExpose({
   clear,
   insertText,
   focus,
-  editor: editorRef
+  editor: editorRef,
 })
 
 // 监听 placeholder 变化
-watch(() => props.placeholder, (newPlaceholder) => {
-  editorConfig.placeholder = newPlaceholder
-})
+watch(
+  () => props.placeholder,
+  (newPlaceholder) => {
+    editorConfig.placeholder = newPlaceholder
+  },
+)
 
 // 组件销毁时清理
 onBeforeUnmount(() => {
-  if (editorRef.value) {
-    editorRef.value.destroy()
+  const editor = editorRef.value
+  if (editor) {
+    editor.destroy()
+    editorRef.value = null
   }
 })
 </script>
@@ -388,7 +485,7 @@ onBeforeUnmount(() => {
 
 :deep(.w-e-color-panel .w-e-color-item:hover) {
   transform: scale(1.1);
-  border-color: #4A90E2;
+  border-color: #4a90e2;
   box-shadow: 0 2px 4px rgba(74, 144, 226, 0.3);
 }
 
@@ -410,7 +507,7 @@ onBeforeUnmount(() => {
 
 :deep(.w-e-select-list .w-e-select-list-item.selected) {
   background-color: #e3f2fd;
-  color: #4A90E2;
+  color: #4a90e2;
 }
 
 :deep(.w-e-text-placeholder) {
@@ -426,7 +523,7 @@ onBeforeUnmount(() => {
   right: 1rem;
   pointer-events: none;
   white-space: pre-wrap;
-  font-family: "Source Han Sans CN", "Microsoft YaHei", sans-serif;
+  font-family: 'Source Han Sans CN', 'Microsoft YaHei', sans-serif;
 }
 
 /* 下拉面板样式 */
@@ -447,7 +544,9 @@ onBeforeUnmount(() => {
 }
 
 /* 为不同字体添加预览样式 - 简化版本 */
-:deep(.w-e-panel .w-e-panel-content .w-e-panel-content-font-family .w-e-panel-content-font-family-item) {
+:deep(
+  .w-e-panel .w-e-panel-content .w-e-panel-content-font-family .w-e-panel-content-font-family-item
+) {
   padding: 8px 12px;
   cursor: pointer;
   border-bottom: 1px solid #f0f0f0;
@@ -455,13 +554,23 @@ onBeforeUnmount(() => {
   line-height: 1.4;
 }
 
-:deep(.w-e-panel .w-e-panel-content .w-e-panel-content-font-family .w-e-panel-content-font-family-item:hover) {
+:deep(
+  .w-e-panel
+    .w-e-panel-content
+    .w-e-panel-content-font-family
+    .w-e-panel-content-font-family-item:hover
+) {
   background-color: #f8f9fa;
 }
 
-:deep(.w-e-panel .w-e-panel-content .w-e-panel-content-font-family .w-e-panel-content-font-family-item.selected) {
+:deep(
+  .w-e-panel
+    .w-e-panel-content
+    .w-e-panel-content-font-family
+    .w-e-panel-content-font-family-item.selected
+) {
   background-color: #e3f2fd;
-  color: #4A90E2;
+  color: #4a90e2;
   font-weight: 500;
 }
 
@@ -473,7 +582,9 @@ onBeforeUnmount(() => {
   padding: 8px;
 }
 
-:deep(.w-e-panel .w-e-panel-content .w-e-panel-content-font-size .w-e-panel-content-font-size-item) {
+:deep(
+  .w-e-panel .w-e-panel-content .w-e-panel-content-font-size .w-e-panel-content-font-size-item
+) {
   padding: 6px 8px;
   text-align: center;
   cursor: pointer;
@@ -482,15 +593,22 @@ onBeforeUnmount(() => {
   transition: all 0.2s ease;
 }
 
-:deep(.w-e-panel .w-e-panel-content .w-e-panel-content-font-size .w-e-panel-content-font-size-item:hover) {
+:deep(
+  .w-e-panel .w-e-panel-content .w-e-panel-content-font-size .w-e-panel-content-font-size-item:hover
+) {
   background-color: #f8f9fa;
-  border-color: #4A90E2;
+  border-color: #4a90e2;
 }
 
-:deep(.w-e-panel .w-e-panel-content .w-e-panel-content-font-size .w-e-panel-content-font-size-item.selected) {
-  background-color: #4A90E2;
+:deep(
+  .w-e-panel
+    .w-e-panel-content
+    .w-e-panel-content-font-size
+    .w-e-panel-content-font-size-item.selected
+) {
+  background-color: #4a90e2;
   color: white;
-  border-color: #4A90E2;
+  border-color: #4a90e2;
 }
 
 :deep(.w-e-select-list .selected::after) {
@@ -499,7 +617,7 @@ onBeforeUnmount(() => {
   right: 8px;
   top: 50%;
   transform: translateY(-50%);
-  color: #4A90E2;
+  color: #4a90e2;
   font-size: 12px;
 }
 
@@ -535,7 +653,7 @@ onBeforeUnmount(() => {
 
 .progress-fill {
   height: 100%;
-  background: #4A90E2;
+  background: #4a90e2;
   transition: all 0.3s ease;
   border-radius: 2px;
 }
@@ -545,14 +663,14 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 0.25rem;
   font-size: 0.75rem;
-  color: #6B7280;
+  color: #6b7280;
   padding: 0.5rem 1rem;
   background: #f9fafb;
   border-top: 1px solid #e5e7eb;
 }
 
 .security-tip i {
-  color: #10B981;
+  color: #10b981;
 }
 
 /* 响应式设计 */
@@ -560,18 +678,18 @@ onBeforeUnmount(() => {
   :deep(.w-e-toolbar) {
     padding: 0.375rem;
   }
-  
+
   :deep(.w-e-toolbar .w-e-bar-item) {
     margin: 0 0.0625rem;
     height: 24px;
     min-width: 24px;
     font-size: 0.875rem;
   }
-  
+
   :deep(.w-e-text-container) {
     padding: 0.75rem;
   }
-  
+
   .editor-footer {
     padding: 0.375rem 0.75rem;
   }

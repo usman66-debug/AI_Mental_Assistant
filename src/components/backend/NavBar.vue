@@ -66,6 +66,7 @@ const handleCommand = (command) => {
     display: flex;
     justify-content: center;
     align-items: center;
+    cursor: pointer;
   }
   .page-title {
     margin-left: 20px;

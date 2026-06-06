@@ -1,5 +1,28 @@
 <script setup>
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+
+const router = useRouter()
+
 const iconUrl = new URL('@/assets/images/robot-fill.png', import.meta.url).href
+
+const handleAIClick = () => {
+  if (localStorage.getItem('token')) {
+    router.push('/consultation')
+  } else {
+    router.push('/auth/login')
+    ElMessage.warning('请先登录')
+  }
+}
+
+const handleRecordClick = () => {
+  if (localStorage.getItem('token')) {
+    router.push('/emotion-diary')
+  } else {
+    router.push('/auth/login')
+    ElMessage.warning('请先登录')
+  }
+}
 </script>
 <template>
   <div class="home-container">
@@ -13,13 +36,17 @@ const iconUrl = new URL('@/assets/images/robot-fill.png', import.meta.url).href
           每个深夜，每个焦虑的时刻，我们都在这里。不必独自承受，让心连心的连接温暖您的每一天
         </p>
         <div class="hero-actions">
-          <el-button size="large">开始倾诉，获得陪伴</el-button>
-          <el-button size="large" style="border-color: #fff" color="transparent"
+          <el-button size="large" @click="handleAIClick">开始倾诉，获得陪伴</el-button>
+          <el-button
+            size="large"
+            style="border-color: #fff"
+            color="transparent"
+            @click="handleRecordClick"
             >记录心情，释放感情</el-button
           >
         </div>
       </div>
-      <div class="robot">
+      <div class="robot" @click="handleAIClick">
         <el-image
           :src="iconUrl"
           alt="机器人"
@@ -77,6 +104,16 @@ const iconUrl = new URL('@/assets/images/robot-fill.png', import.meta.url).href
       box-shadow:
         0 15px 35px rgba(0, 0, 0, 0.1),
         inset 0 1px 0 rgba(255, 255, 255, 0.3);
+
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-5px) scale(1.02);
+        box-shadow:
+          0 25px 45px rgba(0, 0, 0, 0.18),
+          inset 0 1px 0 rgba(255, 255, 255, 0.4);
+      }
     }
   }
 }

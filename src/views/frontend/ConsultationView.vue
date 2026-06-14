@@ -1,62 +1,33 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import {
-  startSession,
-  getSessionList,
-  deleteSession,
-  getSessionDetail,
-  getEmotionRank,
-} from '@/apis/frontend'
+import { startSession, getSessionList, deleteSession, getSessionDetail } from '@/apis/frontend'
 import MarkdownRenderer from '@/views/frontend/MarkdownRenderer.vue'
-import { fetchEventSource } from '@microsoft/fetch-event-source'
-
+import { useChatStore } from '@/stores/chat'
+import { storeToRefs } from 'pinia'
 const logoIconUrl = new URL('@/assets/images/robot-fill.png', import.meta.url).href
 const loveIconUrl = new URL('@/assets/images/like.png', import.meta.url).href
 const usersIconUrl = new URL('@/assets/images/users.png', import.meta.url).href
-
-//新建临时会话（前端会话）
-const createNewFrontendSession = () => {
-  //创建一个新的会话对象
-  const newSession = {
-    sessionId: `temp_${Date.now()}`,
-    status: 'TEMP',
-    sessionTitle: '新对话',
-  }
-  //将当前会话对象设置为新创建的会话对象
-  currentSession.value = newSession
-  //将对话消息数组设置为空
-  message.value = []
-  //将用户输入框中输入的消息设置为空
-  userMessage.value = ''
-  //情绪花园回到默认状态
-  currentEmotion.value = { ...defaultEmotion }
-}
-//定义一个当前会话对象
-const currentSession = ref(null)
-const sessionList = ref([])
-//定义对话消息数组
-const message = ref([])
-//定义用户输入框中输入的消息
-const userMessage = ref('')
-//定义AI助手是否正在进行回复
-const isAiReplying = ref(false)
+const chatStore = useChatStore()
+const {
+  currentSession,
+  sessionList,
+  message,
+  userMessage,
+  isAiReplying,
+  isSessionLoading,
+  currentEmotion,
+} = storeToRefs(chatStore)
 // 定义发送消息的键盘事件
 const handleKeyDown = (e) => {
-  // 如果正在中文输入法组词，比如拼音还没选字，不处理(中文输入法组词期间 Enter → 不误触发送)
   if (e.isComposing) {
     return
   }
-
-  // Shift + Enter：换行，不发送
   if (e.key === 'Enter' && e.shiftKey) {
     return
   }
-
-  // Enter：发送消息，并阻止 textarea 默认换行
   if (e.key === 'Enter') {
     e.preventDefault()
-    // 检查字数限制
     if (userMessage.value.length > 500) {
       ElMessage.warning('输入内容不能超过500字')
       return
@@ -64,40 +35,15 @@ const handleKeyDown = (e) => {
     sendMessage()
   }
 }
-//定义简单的换行逻辑，将用户输入的消息中的换行符替换为HTML的<br>标签
 const formatMessageContent = (content) => {
   return content.replace(/\n/g, '<br>')
 }
-
-//情绪花园默认状态
-const defaultEmotion = {
-  label: '中性',
-  isNegative: false,
-  emotionScore: 50,
-  primaryEmotion: '中性',
-  riskLevel: 0,
-  suggestion: '',
-  improvementSuggestions: [],
-}
-
-//情绪花园
-const currentEmotion = ref({ ...defaultEmotion })
-
-//判断是否为默认状态
 const isDefaultEmotion = () => {
   return (
     currentEmotion.value.suggestion === '' &&
     currentEmotion.value.improvementSuggestions?.length === 0
   )
 }
-
-const loadingEmotionRank = (sessionId) => {
-  const id = sessionId.toString().startsWith('session_') ? sessionId : `session_${sessionId}`
-  getEmotionRank(id).then((res) => {
-    currentEmotion.value = res
-  })
-}
-
 const getIntensityClass = (score) => {
   if (score >= 61) {
     return 3
@@ -121,10 +67,11 @@ const getRiskText = (level) => {
       return '未知状态'
   }
 }
-
-//定义用户发送信息函数
 const sendMessage = () => {
-  //如果用户输入框中输入的消息为空，直接返回
+  if (isSessionLoading.value) {
+    ElMessage.warning('会话消息加载中，请稍后再发送')
+    return
+  }
   if (!userMessage.value.trim()) {
     return
   }
@@ -133,174 +80,72 @@ const sendMessage = () => {
     return
   }
   const inputContent = userMessage.value.trim()
-  userMessage.value = ''
-  //如果当前会话是临时会话，则创建一个真实的保存到后端的会话对象
+  chatStore.setUserMessage('')
   if (currentSession.value.status === 'TEMP') {
     startNewSession(inputContent)
-  }
-  //如果不是当前会话是临时会话，则直接开始流式对话
-  else {
-    message.value.push({
-      id: Date.now(),
-      senderType: 1,
-      content: inputContent,
-      createdAt: new Date().toISOString(),
-    })
-    startAIResponse(currentSession.value.sessionId, inputContent)
+  } else {
+    chatStore.addUserMessage(inputContent)
+    chatStore.startAIResponse(currentSession.value.sessionId, inputContent)
   }
 }
-
-//创建真实的保存到后端的会话对象
 const startNewSession = (inputContent) => {
-  //定义传给后端的参数对象
   const sessionParams = {
     initialMessage: inputContent,
   }
-  //如果当前对话为新对话，根据接口要求传递当前对话title
   if (currentSession.value.sessionTitle === '新对话') {
     sessionParams.sessionTitle = `AI情绪助手-${new Date().toLocaleString()}`
-  }
-  //如果不是新对话（是历史对话）,则更新历史对话的标题为当前标题
-  else {
+  } else {
     sessionParams.sessionTitle = currentSession.value.sessionTitle
   }
-  //调用后端接口创建创建一个真实的保存到后端的会话对象
   startSession(sessionParams).then((res) => {
-    console.log(res)
-    //将后端返回的数据转为前端会话格式
     const sessionData = {
       sessionId: res.sessionId,
       status: res.status,
       sessionTitle: sessionParams.sessionTitle,
     }
-    //如果当前是临时会话，更新数据
     if (currentSession.value && currentSession.value.status === 'TEMP') {
-      //当前页面已有一个临时会话，将它原地升级为后端返回的正式会话
       Object.assign(currentSession.value, sessionData)
     } else {
-      // 兜底：如果当前没有临时会话，则直接把后端返回的数据作为当前会话（基本不会出现这种情况）
-      currentSession.value = sessionData
+      chatStore.setCurrentSession(sessionData)
     }
-    //更新会话列表
     getSessionPage()
-    //将用户输入的消息添加到对话消息数组中
-    message.value.push({
-      id: Date.now(),
-      senderType: 1,
-      content: inputContent,
-      createdAt: new Date().toISOString(),
-    })
-    //开始流式对话
-    startAIResponse(currentSession.value.sessionId, inputContent)
+    chatStore.addUserMessage(inputContent)
+    chatStore.startAIResponse(currentSession.value.sessionId, inputContent)
   })
 }
-
-const startAIResponse = (sessionId, inputContent) => {
-  //防止重复发送消息
+const getSessionPage = () => {
+  getSessionList({
+    pageNum: 1,
+    pageSize: 10,
+  }).then((res) => {
+    chatStore.setSessionList(res.records)
+  })
+}
+const handleSessionClick = async (session) => {
   if (isAiReplying.value) {
-    ElMessage.error('AI助手正在回复中，请稍后再试...')
+    ElMessage.warning('AI 正在回复中，请等待回复完成后再切换会话')
     return
   }
-  //将AI助手设置为正在回复状态
-  isAiReplying.value = true
-  // toString转换为36进制，因为36进制刚好用到0-9、a-z
-  const aiMessage = {
-    id: `ai_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-    senderType: 2,
-    content: '',
-    createdAt: new Date().toISOString(),
-  }
-  message.value.push(aiMessage)
-  //AI回复需要调用流式接口，通过npm安装fetch-event-source库来实现,使用方法和axios类似
-  const ctrl = new AbortController()
-  fetchEventSource(`/api/psychological-chat/stream`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      token: localStorage.getItem('token'),
-      Accept: 'text/event-stream',
-    },
-    body: JSON.stringify({
-      sessionId,
-      userMessage: inputContent,
-    }),
-    signal: ctrl.signal,
-    //请求发出去后，后端有响应了，前端刚刚连上这个流式接口时，会先执行 onopen
-    onopen: (response) => {
-      console.log(response)
-      if (response.headers.get('Content-Type') !== 'text/event-stream') {
-        ElMessage.error('后端返回的不是流式数据')
-      }
-    },
-    onmessage: (event) => {
-      //拿到每一段流式数据
-      const row = event.data.trim()
-      if (!row) {
-        return
-      }
-      //定义当前会话窗口的AI消息框(对话的最后一个消息，因为AI肯定是回复者，总会在后面)
-      const aiMessage = message.value[message.value.length - 1]
-      const eventName = event.event
-      //如果事件名为done，说明后端回复完成，将AI助手设置为未回复状态
-      if (eventName === 'done') {
-        isAiReplying.value = false
-        ctrl.abort()
-        loadingEmotionRank(sessionId)
-        return
-      }
-
-      const payload = JSON.parse(row)
-      if (eventName === 'error') {
-        handleError(payload.msg || payload.message || 'AI回复失败，请稍后重试')
-        return
-      }
-      const ok = String(payload.code) === '200'
-      if (ok && payload.data?.content) {
-        aiMessage.content += payload.data.content
-      } else if (!ok) {
-        handleError(payload.msg || 'AI助手回复错误')
-      }
-    },
-    onerror: (error) => {
-      handleError(error || 'AI助手回复错误')
-      throw error
-    },
-    onclose: () => {
-      //开始情绪分析
-      loadingEmotionRank(sessionId)
-    },
-  })
-}
-
-//回复错误时，提示用户
-const handleError = (error = 'AI助手回复错误') => {
-  //当前会话的AI消息
-  const aiMessage = message.value[message.value.length - 1]
-  if (aiMessage) {
-    aiMessage.content = error
-  }
-  isAiReplying.value = false
-  ElMessage.error(error)
-}
-
-//获取会话详情
-const getSessionPage = () => {
-  getSessionList({ pageNum: 1, pageSize: 10 }).then((res) => {
-    sessionList.value = res.records
-  })
-}
-const handleSessionClick = (session) => {
-  getSessionDetail(session.id).then((res) => {
-    message.value = res
-  })
-  loadingEmotionRank(session.id)
-  //更新当前会话数据
   const sessionData = {
     sessionId: 'session_' + session.id,
     status: 'ACTIVE',
     sessionTitle: session.sessionTitle,
   }
-  currentSession.value = sessionData
+  chatStore.setCurrentSession(sessionData)
+  chatStore.resetCurrentEmotion()
+  chatStore.loadingEmotionRank(sessionData.sessionId)
+  chatStore.setSessionLoading(true)
+  chatStore.setMessage([])
+  try {
+    const res = await getSessionDetail(session.id)
+    if (currentSession.value?.sessionId === sessionData.sessionId) {
+      chatStore.setMessage(res)
+    }
+  } finally {
+    if (currentSession.value?.sessionId === sessionData.sessionId) {
+      chatStore.setSessionLoading(false)
+    }
+  }
 }
 const handleDeleteSession = (sessionId) => {
   deleteSession(sessionId).then(() => {
@@ -308,12 +153,11 @@ const handleDeleteSession = (sessionId) => {
     getSessionPage()
   })
 }
-
 onMounted(() => {
-  //在组件挂载完成后，获取会话列表
   getSessionPage()
-  //在组件挂载完成后，创建一个新的会话对象
-  createNewFrontendSession()
+  if (!currentSession.value) {
+    chatStore.createNewFrontendSession()
+  }
 })
 </script>
 
@@ -456,7 +300,7 @@ onMounted(() => {
             <p>您的贴心AI心理健康助手</p>
           </div>
         </div>
-        <el-button circle @click="createNewFrontendSession" title="新建会话"
+        <el-button circle @click="chatStore.createNewFrontendSession()" title="新建会话"
           ><el-icon><Plus /></el-icon
         ></el-button>
       </div>
@@ -505,6 +349,7 @@ onMounted(() => {
               <!-- AI正常返回消息 -->
               <MarkdownRenderer
                 v-else-if="msg.senderType === 2 && !msg.isError"
+                :key="`${msg.id}-${msg.content.length}`"
                 :content="msg.content"
                 :is-ai-message="true"
               />
@@ -531,7 +376,7 @@ onMounted(() => {
             placeholder="请输入您想要分享的内容..."
             type="textarea"
             :rows="3"
-            :disabled="isAiReplying"
+            :disabled="isAiReplying || isSessionLoading"
             @keydown="handleKeyDown"
             class="message-input"
             clearable
@@ -542,7 +387,9 @@ onMounted(() => {
           </div>
         </div>
         <el-button
-          :disabled="isAiReplying || !userMessage.trim() || userMessage.length > 500"
+          :disabled="
+            isAiReplying || isSessionLoading || !userMessage.trim() || userMessage.length > 500
+          "
           type="primary"
           class="send-btn"
           @click="sendMessage"

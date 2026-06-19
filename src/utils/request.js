@@ -47,7 +47,7 @@ service.interceptors.response.use(
           ElMessage.error(data.msg || '登录状态超时，请重新登录')
           //清除用户登录信息（确保同步执行完成）
           localStorage.removeItem('token')
-          localStorage.removeItem('userInfo')
+          localStorage.removeItem('userinfo')
           //使用 setTimeout 确保 localStorage 操作完成后再跳转
           setTimeout(() => {
             window.location.href = '/auth/login'

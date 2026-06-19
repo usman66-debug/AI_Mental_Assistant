@@ -148,6 +148,10 @@ const handleSessionClick = async (session) => {
   }
 }
 const handleDeleteSession = (sessionId) => {
+  if (isAiReplying.value) {
+    ElMessage.warning('AI 正在回复中，请等待回复完成后再删除会话')
+    return
+  }
   deleteSession(sessionId).then(() => {
     ElMessage.success('会话删除成功')
     getSessionPage()
@@ -280,7 +284,13 @@ onMounted(() => {
                 </div>
               </div>
               <div class="session-actions">
-                <el-button text type="danger" size="small" @click="handleDeleteSession(session.id)">
+                <el-button
+                  text
+                  type="danger"
+                  size="small"
+                  :disabled="isAiReplying"
+                  @click.stop="handleDeleteSession(session.id)"
+                >
                   <el-icon><DeleteFilled /></el-icon>
                 </el-button>
               </div>

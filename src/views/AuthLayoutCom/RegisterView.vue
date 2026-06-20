@@ -56,7 +56,14 @@ const submitForm = async () => {
       return
     }
 
-    register(formData.value)
+    const submitData = { ...formData.value }
+    if (!submitData.phone) {
+      delete submitData.phone
+    }
+    if (!submitData.nickname) {
+      delete submitData.nickname
+    }
+    register(submitData)
       .then((res) => {
         console.log(res)
 

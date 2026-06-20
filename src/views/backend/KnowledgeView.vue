@@ -109,7 +109,7 @@ onMounted(async () => {
 })
 const handleSuccess = () => {
   dialogVisible.value = false
-  handleSearch(searchForm.value, true)
+  handleSearch(searchForm.value, false)
 }
 //编辑文章
 const currentArtical = ref(null)
@@ -138,7 +138,7 @@ const handlePublish = (row) => {
     .then(() => {
       publishArticleApi(row.id, { status: 1 }).then(() => {
         ElMessage.success('发布成功')
-        handleSearch(searchForm.value, true)
+        handleSearch(searchForm.value, false)
       })
     })
     .catch(() => {
@@ -154,7 +154,7 @@ const handleOffline = (row) => {
     .then(() => {
       publishArticleApi(row.id, { status: 2 }).then(() => {
         ElMessage.success('下线成功')
-        handleSearch(searchForm.value, true)
+        handleSearch(searchForm.value, false)
       })
     })
     .catch(() => {
@@ -170,7 +170,7 @@ const handleDelete = (row) => {
     .then(() => {
       deleteArticleApi(row.id).then(() => {
         ElMessage.success('删除成功')
-        handleSearch(searchForm.value, true)
+        handleSearch(searchForm.value, false)
       })
     })
     .catch(() => {
@@ -237,6 +237,7 @@ const handleDelete = (row) => {
       layout="prev, pager, next"
       :total="pagination.total"
       :page-size="pagination.size"
+      v-model:current-page="pagination.currentPage"
       @change="handleChange"
     />
     <ArticalDialog

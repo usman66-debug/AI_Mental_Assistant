@@ -7,7 +7,7 @@ const router = useRouter()
 const iconUrl = new URL('@/assets/images/机器人.png', import.meta.url).href
 
 const selectMenu = (key) => {
-  router.push(`${router.options.routes[0].path}` + '/' + `${key.index}`)
+  router.push(`/back/${key.index}`)
 }
 </script>
 

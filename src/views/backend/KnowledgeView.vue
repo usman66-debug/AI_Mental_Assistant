@@ -190,7 +190,7 @@ const handleDelete = (row) => {
     <!-- 监听子组件同名事件search，收到子组件传过来的数据后，调用handleSearch函数 -->
     <TableSearch :formItem="formItem" @search="handleSearch" />
     <el-table :data="tableData" style="width: 100%; margin-top: 25px">
-      <el-table-column label="文章标题" fixed="left" width="504">
+      <el-table-column label="文章标题" fixed="left">
         <template #default="scope">
           <div style="display: flex; align-items: center">
             <el-icon><timer /></el-icon>
